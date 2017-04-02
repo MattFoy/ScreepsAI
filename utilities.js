@@ -67,8 +67,6 @@ function getVisualDirection(direction) {
     case BOTTOM_RIGHT:
       return '\u2198';
     case 0:
-      return '\u2218';
-    case -1:
       return 'x';
     default:
       return '?';
@@ -101,9 +99,22 @@ function pruneMemory() {
     //console.log(name + ': ' + (JSON.stringify(Memory.rooms[name]).length / 1024).toFixed(1) + 'KB');
     if (Memory.rooms[name].flowFields) {
       for (let exitRoom in Memory.rooms[name].flowFields) {
+        continue;
+        if (Memory.rooms[name].flowFields[exitRoom].length === 50) {
+          let xy = 0;
+          while (xy < 2500) {
+            let y = (xy % 50);
+            let x = Math.floor(xy / 50);
+            if (Memory.rooms[name].flowFields[exitRoom][x][y] === -1 || Memory.rooms[name].flowFields[exitRoom][x][y] === "_") {
+              //Memory.rooms[name].flowFields = 0;
+              Memory.rooms[name].flowFields[exitRoom][x][y] = 0;
+            }
+
+            xy++;
+          }
+        }
 
         if (Memory.rooms[name].flowFields[exitRoom].length > 50) {
-          
           console.log(name + ':' + exitRoom + ', ' + 'array too large');
           
           let newArray = [];

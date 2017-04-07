@@ -46,6 +46,7 @@ const modules = require('modules');
 const utilities = require('utilities');
 const roles = require('roles');
 const squads = require('squads');
+const traveler = require('traveler');
 
 const resources = require('resources');
 //profiler.enable();
@@ -344,7 +345,7 @@ module.exports.loop = function () { profiler.wrap(function() {
         if (!room.memory.flowFields) { room.memory.flowFields = {}; }
         if (!room.memory.flowFields[exits[exit]]) { room.memory.flowFields[exits[exit]] = []; }
         //console.log('[' + room.name + '] Checking ' + exits[exit] + ' flow field. ' + exit);
-        room.calculateFlowfield(exits[exit], exit);
+        //room.calculateFlowfield(exits[exit], exit);
       }
     });
   }

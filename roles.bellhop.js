@@ -162,11 +162,17 @@ let roleBellhop = {
       let link = Game.getObjectById(creep.room.memory.receivingLink);
       if (creep.memory.carrying) {
         if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y), {range: 0});
+          console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
+          let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+          console.log(JSON.stringify(roomPos));
+          creep.travelTo(roomPos, {range: 0});
         }
       } else {
         if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y), {range: 0});
+          console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
+          let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+          console.log(JSON.stringify(roomPos));
+          creep.travelTo(roomPos, {range: 0});
         }
       }
       if (link.energy == 0) { creep.memory.bellhopTask = "idle"; }

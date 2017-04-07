@@ -14,16 +14,16 @@ module.exports = {
 
 			if (flag) {
 				if (creep.room.name !== flag.pos.roomName && creep.room.name !== squad.target) {
-					creep.travelTo(flag, {range: 1});
+					creep.travelTo(flag, {range: 1, allowHostile: true});
 				} else {
 					if (creep.hitsMax - creep.hits > 100) {
-						creep.travelTo(flag, {range: 1});
+						creep.travelTo(flag, {range: 1, allowHostile: true});
 					} else {
 						if (creep.room.name !== squad.target) {
 							if (Game.rooms[squad.target]) {
-								creep.travelTo(Game.rooms[squad.target].controller, {range: 1});
+								creep.travelTo(Game.rooms[squad.target].controller, {range: 1, allowHostile: true});
 							} else {
-								creep.travelTo({x:25,y:25,roomName:squad.target}, {range:1});
+								creep.travelTo({x:25,y:25,roomName:squad.target}, {range: 1, allowHostile: true});
 							}
 						} else {
 							if (!creep.goDismantle()) {
@@ -47,7 +47,7 @@ module.exports = {
 			let flag = Game.flags[squad.medicTent];
 			if (flag) {
 				if (creep.room.name !== flag.pos.roomName || creep.pos.getRangeTo(flag) > 0) {
-					creep.travelTo(flag, {range: 0});
+					creep.travelTo(flag, {range: 0, allowHostile: true});
 				} else {
 					let woundedCreeps = creep.room.find(FIND_MY_CREEPS, { filter: function(c) {
 						return c.hits < c.hitsMax 
@@ -106,9 +106,9 @@ module.exports = {
 			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
 			if (creep.room.name !== squad.target) {
 				if (Game.rooms[squad.target]) {
-					creep.travelTo(Game.rooms[squad.target].controller, {range: 1});
+					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
 				} else {
-					creep.travelTo({x: 25, y: 25, roomName: squad.target});
+					creep.travelTo({x: 25, y: 25, roomName: squad.target}, { allowHostile: true });
 				}
 			} else {
 				if (!creep.goDismantle()) {
@@ -148,7 +148,7 @@ module.exports = {
 			}
 
 			if (!moving) {
-				let focalPoints = _.filter(squadMembers, (c) => c.memory.squadPosition !== 'simpleMedic');
+				let focalPoints = _.filter(squadMembers, (c) => c.memory.position !== 'simpleMedic');
 				if (focalPoints.length > 0) {
 					if (focalPoints.length === 1) {
 						creep.moveTo(focalPoints[0]);
@@ -157,7 +157,7 @@ module.exports = {
 						creep.moveTo(focalPoints[0]);
 					}
 				} else {
-					creep.travelTo(squad.rallyPoint, { range: 0 });
+					creep.travelTo(squad.rallyPoint, { range: 1, allowHostile: true });
 				}
 			}
 		}

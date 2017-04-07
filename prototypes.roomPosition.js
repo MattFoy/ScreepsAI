@@ -54,8 +54,8 @@ module.exports = function() {
         // We need to set the defaults costs higher so that we
         // can set the road cost lower in `roomCallback`
         maxRooms: 1,
-        plainCost: 2,
-        swampCost: 10,
+        plainCost: 4,
+        swampCost: 20,
 
         roomCallback: function(roomName) {
           //console.log(roomName)
@@ -85,7 +85,7 @@ module.exports = function() {
           
           return costs;
         },
-        maxOps: 512
+        maxOps: 1024
       }
     );
     //console.log(JSON.stringify(ret))

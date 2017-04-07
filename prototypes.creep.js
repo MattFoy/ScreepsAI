@@ -495,8 +495,11 @@ module.exports = function() {
           && pos.roomName === creep.pos.roomName;
         }); 
 
-        if (idealSpotsWeOccupy.length <= 0) {
-          this.travelTo(idealPositions[0], {range: 0});
+        if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
+          //console.log(JSON.stringify(idealPositions[0]));
+          let roomPos = Game.rooms[idealPositions[0].roomName].getPositionAt(idealPositions[0].x, idealPositions[0].y);
+          //console.log(JSON.stringify(roomPos));
+          this.travelTo(roomPos, {range: 0});
         }
       } else {
         if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
@@ -613,7 +616,7 @@ module.exports = function() {
         }
       } else {
         if (!this.memory.targetEnergyHarvestId) {
-          let sources = this.room.find(FIND_SOURCES);
+          let sources = this.room.find(FIND_SOURCES, { filter: (s) => s.energy > 0 });
           if (sources.length > 0 && this.pos.findClosestByPath(sources)) {
             this.memory.targetEnergyHarvestId = this.pos.findClosestByPath(sources).id;      
           } else {

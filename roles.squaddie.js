@@ -12,15 +12,15 @@ let roleSquaddie = {
   /** @param {Creep} creep **/
   run: profiler.registerFN(function(creep) {
     let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
-    
+
     //if (!squad) { return; }
     if (!squad && creep.memory.position && creep.memory.target) {
       squads[creep.memory.position].run(creep);
     } else if (squad && squad.status && (squad.status === 'forming' || squad.status === 'rallying')) {
       if (creep.room.name !== squad.rallyPoint.roomName || (creep.pos.getRangeTo(squad.rallyPoint.x, squad.rallyPoint.y) > 2)) {
-        creep.travelTo(squad.rallyPoint, {range: 0 });
+        creep.travelTo({ pos: squad.rallyPoint }, {range: 1, allowHostile: true });
       } else {
-        //creep.travelTo(squad.rallyPoint, {range: 0, ignoreCreeps: false })
+        //creep.travelTo(squad.rallyPoint, {range: 1, ignoreCreeps: false, allowHostile: true })
       }
     } else {
       if (!squad) { return; }

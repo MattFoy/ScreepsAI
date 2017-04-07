@@ -92,6 +92,9 @@ module.exports = function() {
     if (this.memory.flowFieldCacheExpiration[exitRoom].currentXY) {
       xy = this.memory.flowFieldCacheExpiration[exitRoom].currentXY;
     }
+    if (xy >= 2500) {
+      xy = 0;
+    }
 
     console.log('calculating flowfield for ' + this.name + ' for exit: ' + exitRoom + ' starting at ' + xy);
 

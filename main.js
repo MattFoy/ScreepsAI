@@ -36,7 +36,6 @@ shouldn't suicide though, find a closer container?
 
 --- CPU issues:
   * fix builder logic, queue up work items once per tick, not once per builder...
-
 */
 
 const profiler = require('screeps-profiler');
@@ -64,7 +63,8 @@ module.exports.loop = function () { profiler.wrap(function() {
   GameState.memory = {};
   GameState.allies = ['Drethin', 'NickelBomber'];
   GameState.cpuUsedToLoad = Game.cpu.getUsed();
-  console.log(GameState.cpuUsedToLoad);
+  
+  //console.log(GameState.cpuUsedToLoad);
 
   RawMemory.setActiveSegments([
     GameState.constants.MEMORY_CRITICAL, 
@@ -200,42 +200,6 @@ module.exports.loop = function () { profiler.wrap(function() {
       utilities.setupMiningFlags(roomName);
       
       utilities.calculateHaulingEconomy(room);
-      
-      if (room.storage && Game.time % 10 === 4) {
-        GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends.push(room.storage.store[RESOURCE_ENERGY]);
-        if (GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends.length > 1000) {
-          GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends.shift();
-        }
-      }
-      let energyTrendStatus = '';
-      
-      if (room.storage && GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends.length > 0) {
-        let avgs = {};
-        [10, 50, 100, 1000].forEach((x) => (
-          avgs[x] = Math.floor(_.sum(_.takeRight(GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends, x)) 
-            / Math.min(x, GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[roomName].energyStorageTrends.length)))
-        );
-        let symbol = (avgs[10] >= avgs[100] ? '+' : '');
-        let difference = (avgs[10] - avgs[100]);
-        let changePerTick = (difference / 1000)
-        energyTrendStatus = ' Energy: <span style="color:yellow">\u26A1' + avgs[10] + "</span>"
-          + ' (Trends-> ' + '\u039450: ' + ((avgs[10] - avgs[50]) > 0 ? '+' : '') + (avgs[10] - avgs[50])
-          + ', ' + '\u0394100: ' + ((avgs[10] - avgs[100]) > 0 ? '+' : '') + (avgs[10] - avgs[100])
-          + ', ' + '\u03941000: ' + ((avgs[10] - avgs[1000]) > 0 ? '+' : '') + (avgs[10] - avgs[1000])
-          + ')';
-      }
-
-      let maxContainerEnergy = _.max(room.memory.energySourceFlags_details, 'energy');
-      
-      let roomStatusReport = 'ROOM: <a href="' + '#!/room/' + roomName + '">' + roomName + '</a>' 
-        + ' Lvl.' + room.controller.level 
-        + ' (' + (Math.round((room.controller.progress / room.controller.progressTotal) * 10000) / 100) + '%)'
-        + ' (SpawnCap: ' + room.energyAvailable + '/' + room.energyCapacityAvailable + ')'
-        + energyTrendStatus
-        + ', EnergyContainerMax: <span style="color:' + (maxContainerEnergy.energy > 2000 ? '#ff3030' : 'green') 
-        + '">' + maxContainerEnergy.energy + '</span>';
-
-      GameState.verbose && console.log(roomStatusReport);
 
       if (Game.time % 3 === 0) {
         room.memory.responsibleForRooms.concat(room.name).forEach(function(rName) {
@@ -358,6 +322,8 @@ module.exports.loop = function () { profiler.wrap(function() {
       RawMemory.segments[GameState.constants[i]] = json;
     }
   }
+  //RawMemory.segments[GameState.constants.MEMORY_ECONOMIC_TRENDS] = '';
+
 
   (function(){
 
@@ -397,4 +363,6 @@ module.exports.loop = function () { profiler.wrap(function() {
     //global.stats_callbacks.fire(Memory.stats);
   })(); // collect_stats
 }
+
+require('commandLineUtilities')();
 });}

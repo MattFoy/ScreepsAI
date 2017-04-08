@@ -94,47 +94,6 @@ function pruneMemory() {
       delete GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[name];
     }
   }
-
-  for (let name in Memory.rooms) {
-    //console.log(name + ': ' + (JSON.stringify(Memory.rooms[name]).length / 1024).toFixed(1) + 'KB');
-    if (Memory.rooms[name].flowFields) {
-      for (let exitRoom in Memory.rooms[name].flowFields) {
-        continue;
-        if (Memory.rooms[name].flowFields[exitRoom].length === 50) {
-          let xy = 0;
-          while (xy < 2500) {
-            let y = (xy % 50);
-            let x = Math.floor(xy / 50);
-            if (Memory.rooms[name].flowFields[exitRoom][x][y] === -1 || Memory.rooms[name].flowFields[exitRoom][x][y] === "_") {
-              //Memory.rooms[name].flowFields = 0;
-              Memory.rooms[name].flowFields[exitRoom][x][y] = 0;
-            }
-
-            xy++;
-          }
-        }
-
-        if (Memory.rooms[name].flowFields[exitRoom].length > 50) {
-          console.log(name + ':' + exitRoom + ', ' + 'array too large');
-          
-          let newArray = [];
-
-          for (var i = 0; i < 50; i++) {
-            let newRow = Memory.rooms[name].flowFields[exitRoom][i].slice(0,50);
-            for (var j = 0; j < newRow.length; j++) {
-              if (newRow[j] === "_" || newRow[j] === -1 || newRow[j] === undefined) {
-                newRow[j] = 0;
-              }
-            }
-            newArray.push(newRow);
-          }
-          console.log(JSON.stringify(Memory.rooms[name].flowFields[exitRoom]).length);
-          console.log(JSON.stringify(newArray).length);
-          Memory.rooms[name].flowFields[exitRoom] = newArray;
-        }
-      }
-    }
-  }
 }
 pruneMemory = profiler.registerFN(pruneMemory, 'pruneMemory');
 
@@ -173,7 +132,7 @@ function initializeRoomMemory(room) {
     }
     
     GameState.memory[GameState.constants.CARTOGRAPHY].costMatrices[room.name] = costs.serialize();
-    GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration[room.name] = Game.time + 1000 + Math.floor(Math.random() * 10);
+    GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration[room.name] = Game.time + 100 + Math.floor(Math.random() * 10);
     //console.log("Cost Matrix calculated and cached for: " + room.name + ', will expire in ' + (GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration[room.name] - Game.time) + ' ticks');
   }
 }

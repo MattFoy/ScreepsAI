@@ -300,16 +300,6 @@ module.exports.loop = function () { profiler.wrap(function() {
     } else {
       //console.log(roomName + " isn't mine.");
     }
-
-    let exits = Game.map.describeExits(room.name);
-    [TOP,BOTTOM,LEFT,RIGHT].forEach(function(exit) {
-      if (exits && exits[exit]) {
-        if (!room.memory.flowFields) { room.memory.flowFields = {}; }
-        if (!room.memory.flowFields[exits[exit]]) { room.memory.flowFields[exits[exit]] = []; }
-        //console.log('[' + room.name + '] Checking ' + exits[exit] + ' flow field. ' + exit);
-        //room.calculateFlowfield(exits[exit], exit);
-      }
-    });
   }
 
 
@@ -320,7 +310,6 @@ module.exports.loop = function () { profiler.wrap(function() {
       RawMemory.segments[GameState.constants[i]] = json;
     }
   }
-  //RawMemory.segments[GameState.constants.MEMORY_ECONOMIC_TRENDS] = '';
 
   if (Game.time % 5 === 4) {
     (function(){

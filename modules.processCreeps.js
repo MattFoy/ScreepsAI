@@ -29,7 +29,7 @@ function processCreeps() {
 
       if (creep.memory.returnToOrigin) {
         if (creep.room.name !== creep.memory.origin) {
-          console.log(creep.name + ', ' + creep.memory.role + ', fleeing to ' + creep.memory.origin)
+          //console.log(creep.name + ', ' + creep.memory.role + ', fleeing to ' + creep.memory.origin)
           creep.travelTo(Game.rooms[creep.memory.origin].controller, {range: 1});
           if (creep.fatigue > 0 && creep.carry[RESOURCE_ENERGY] > 0) {
             creep.drop(RESOURCE_ENERGY);

@@ -1,10 +1,5 @@
-/**
- * To start using Traveler, require it in main.js:
- * Example: var Traveler = require('Traveler.js');
- *
- * Check the footer of this file for suggestions on how to access it at various scopes
- *
- */
+require('prototypes.room')();
+
 "use strict";
 const REPORT_CPU_THRESHOLD = 50;
 const DEFAULT_MAXOPS = 20000;
@@ -75,14 +70,6 @@ class Traveler {
         return allowedRooms;
     }
     findTravelPath(origin, destination, options = {}) {
-        if (!destination.roomName) {
-          if (destination.pos && (destination.pos.roomName)) {
-            destination = destination.pos;
-          } else {
-            console.log('Invalid destination: ' + JSON.stringify(destination));
-            return;
-          }
-        }
         _.defaults(options, {
             ignoreCreeps: true,
             range: 1,
@@ -139,9 +126,20 @@ class Traveler {
         });
     }
     travelTo(creep, destination, options = {}) {
+        if (!destination.roomName) {
+          if (destination.pos && (destination.pos.roomName)) {
+            destination = destination.pos;
+          } else {
+            console.log('Invalid destination: ' + JSON.stringify(destination));
+            return;
+          }
+        }
 
+        if (Room.getType(destination.roomName) === 'SourceKeeper' 
+            || Room.getType(creep.room.name) === 'SourceKeeper') {
+            options.allowSK = true;  
+        }
         options.allowHostile = true;
-        options.allowSK = true;
 
         // register hostile rooms entered
         if (creep.room.controller) {

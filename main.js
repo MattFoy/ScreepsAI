@@ -1,11 +1,5 @@
 /*
 
-1. Add creeps to the spawn queue when they are close to dying
-  * Will vary based on creep type / distance 
-
-2. Haulers won't go to resource containers if they can't make it there and back again... 
-shouldn't suicide though, find a closer container?
-
 5. Auto-calc no. of necessary builders
 
 6. Make haulers prioritize (slightly) things that are closer to them
@@ -15,10 +9,6 @@ shouldn't suicide though, find a closer container?
   * design 'ideal' base.
 
 10. Add max energy threshold to market queries / filter, wait for RCL 6...
-
-11. Verify that sentries can handle SK invaders... it's a solid "maybe" right now.
-  * verify that 2 spawns can actually keep up with it...
-  * verify that this shit is actually profitable...
 
 12. mineral extractors should wait if the container is full, 
   * not mine it and drop it and also not try to go store it somewhere else...
@@ -32,7 +22,6 @@ shouldn't suicide though, find a closer container?
     - medic + dismantler / attacker
       - medic stays out of room and heals
       - dismantler walks in, walks out to get healed when under 75% hp
- 
 
 --- CPU issues:
   * fix builder logic, queue up work items once per tick, not once per builder...
@@ -202,6 +191,15 @@ module.exports.loop = function () { profiler.wrap(function() {
       utilities.calculateHaulingEconomy(room);
 
       if (Game.time % 3 === 0) {
+        // if (room.name === 'W88S41' && room.controller.level >= 2) {
+        //   room.createConstructionSite(31, 19, STRUCTURE_TOWER);
+        //   room.createConstructionSite(35, 18, STRUCTURE_EXTENSION);
+        //   room.createConstructionSite(36, 18, STRUCTURE_EXTENSION);
+        //   room.createConstructionSite(36, 17, STRUCTURE_EXTENSION);
+        //   room.createConstructionSite(37, 17, STRUCTURE_EXTENSION);
+        //   room.createConstructionSite(37, 16, STRUCTURE_EXTENSION);
+        // }
+
         room.memory.responsibleForRooms.concat(room.name).forEach(function(rName) {
           //console.log('Reponsible for: ' + rName);
           let rRoom;
@@ -324,44 +322,36 @@ module.exports.loop = function () { profiler.wrap(function() {
   }
   //RawMemory.segments[GameState.constants.MEMORY_ECONOMIC_TRENDS] = '';
 
+  if (Game.time % 5 === 4) {
+    (function(){
+      // Don't overwrite things if other modules are putting stuff into Memory.stats
+      if (Memory.stats == null) {
+          Memory.stats = { tick: Game.time };
+      }
 
-  (function(){
+      // Note: This is fragile and will change if the Game.cpu API changes
+      Memory.stats.cpu = Game.cpu;
+      Memory.stats.cpu.used = Game.cpu.getUsed(); // AT END OF MAIN LOOP
+      Memory.stats.cpu.usedToLoad = GameState.cpuUsedToLoad;
 
-    // Don't overwrite things if other modules are putting stuff into Memory.stats
-    if (Memory.stats == null) {
-        Memory.stats = { tick: Game.time };
-    }
+      // Note: This is fragile and will change if the Game.gcl API changes
+      Memory.stats.gcl = Game.gcl;
 
-    // Note: This is fragile and will change if the Game.cpu API changes
-    Memory.stats.cpu = Game.cpu;
-    Memory.stats.cpu.used = Game.cpu.getUsed(); // AT END OF MAIN LOOP
-    Memory.stats.cpu.usedToLoad = GameState.cpuUsedToLoad;
+      const memory_used = RawMemory.get().length;
+      // console.log('Memory used: ' + memory_used);
+      Memory.stats.memory = {
+          used: memory_used,
+          // Other memory stats here?
+      };
 
-    // Note: This is fragile and will change if the Game.gcl API changes
-    Memory.stats.gcl = Game.gcl;
+      Memory.stats.roomSummary = resources.summarize_rooms();
 
-    const memory_used = RawMemory.get().length;
-    // console.log('Memory used: ' + memory_used);
-    Memory.stats.memory = {
-        used: memory_used,
-        // Other memory stats here?
-    };
-
-    Memory.stats.roomSummary = resources.summarize_rooms();
-
-    Memory.stats.market = {
-        credits: Game.market.credits,
-        num_orders: Game.market.orders ? Object.keys(Game.market.orders).length : 0,
-    };
-
-    //Memory.stats.roomSummary = resources.summarize_rooms();
-
-    // Add callback functions which we can call to add additional
-    // statistics to here, and have a way to register them.
-    // 1. Merge in the current repair ratchets into the room summary
-    // TODO: Merge in the current creep desired numbers into the room summary
-    //global.stats_callbacks.fire(Memory.stats);
-  })(); // collect_stats
+      Memory.stats.market = {
+          credits: Game.market.credits,
+          num_orders: Game.market.orders ? Object.keys(Game.market.orders).length : 0,
+      };
+    })(); // collect_stats
+  }
 }
 
 require('commandLineUtilities')();

@@ -1,16 +1,20 @@
 const roles = require('roles');
 
 module.exports = function() {
-	Game.spawnHelpFor = function(roomName) {
+	Game.spawnHelpFor = function(roomName, maxSpawn, roleName) {
+		if (!maxSpawn) { maxSpawn = 100; }
+		if (!roleName) { roleName = 'labourer'; }
+
 		let origin = Game.rooms[roomName];
 		if (origin && origin.controller && origin.controller.my) {
 			console.log("Asking for help for room: " + origin.name);
 			for (var name in Game.spawns) {
 				let spawn = Game.spawns[name];
-				if (!spawn.spawning) {
+				if (!spawn.spawning && maxSpawn > 0) {
 					if (Game.map.getRoomLinearDistance(spawn.pos.roomName, roomName) < 8) {
 						let result = spawn.createCreep([WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY]
-							, undefined, { origin: origin.name, role: 'labourer', returnToOrigin: true });
+							, undefined, { origin: origin.name, role: roleName, returnToOrigin: true });
+						if (typeof result === 'string') { maxSpawn--; }
 						console.log(spawn.name + ': ' + result);
 					}	
 				}				

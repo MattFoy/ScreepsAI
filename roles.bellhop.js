@@ -160,26 +160,31 @@ let roleBellhop = {
       }
     } else if (creep.memory.bellhopTask === "lnk_o") {
       let link = Game.getObjectById(creep.room.memory.receivingLink);
-      if (creep.memory.carrying) {
-        if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
-          let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
-          console.log(JSON.stringify(roomPos));
-          creep.travelTo(roomPos, {range: 0});
-        }
+      if (!link) { 
+        creep.room.memory.receivingLink = undefined; 
+        creep.memory.bellhopTask = 'idle'; 
       } else {
-        if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
-          let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
-          console.log(JSON.stringify(roomPos));
-          creep.travelTo(roomPos, {range: 0});
+        if (creep.memory.carrying) {
+          if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
+            let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+            //console.log(JSON.stringify(roomPos));
+            creep.travelTo(roomPos, {range: 0});
+          }
+        } else {
+          if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
+            let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+            //console.log(JSON.stringify(roomPos));
+            creep.travelTo(roomPos, {range: 0});
+          }
         }
-      }
-      if (link.energy == 0) { creep.memory.bellhopTask = "idle"; }
-      if (_.sum(creep.carry) > creep.carry.energy) {
-        for (var resourceType in creep.carry) {
-          if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+        if (link.energy == 0) { creep.memory.bellhopTask = "idle"; }
+        if (_.sum(creep.carry) > creep.carry.energy) {
+          for (var resourceType in creep.carry) {
+            if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
+              creep.travelTo(creep.room.storage, {range: 1});
+            }
           }
         }
       }

@@ -4,6 +4,7 @@ const profiler = require('screeps-profiler');
 let roleRoomReserver = {
 
   spawnType: 'reservation',
+  flees: true,
 
   /** @param {Creep} creep **/
   run: profiler.registerFN(function(creep) {

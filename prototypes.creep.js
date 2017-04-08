@@ -432,7 +432,7 @@ module.exports = function() {
       let controller = Game.rooms[this.memory.origin].controller;
 
       let sources = controller.pos.findInRange(FIND_STRUCTURES, 4, { filter: (s) =>
-        s.structureType === STRUCTURE_CONTAINER 
+        (s.structureType === STRUCTURE_CONTAINER && s.pos.findClosestByRange(FIND_SOURCES).pos.getRangeTo(s) > 1)
           || s.structureType === STRUCTURE_STORAGE 
           || s.structureType === STRUCTURE_LINK
       });
@@ -463,7 +463,7 @@ module.exports = function() {
                 && pos.getRangeTo(controller) <= 3 
                 && pos.getRangeTo(pos.findClosestByRange(sources)) <= 1) {
                 idealPositions.push({ x: x, y: y, roomName: this.room.name });
-                this.room.visual.text('x', x, y);
+                //this.room.visual.text('x', x, y);
               }
             }
           }
@@ -486,24 +486,22 @@ module.exports = function() {
           _.map(idealPositions, function(pos) { 
             return creep.room.getPositionAt(pos.x, pos.y);
           })
-          , (pos) => pos.isPathable());;
+          , (pos) => pos.isPathable(false, creep));
 
         let idealSpotsWeOccupy = _.filter(idealPositions, function(pos) { 
           //console.log('wtf: ' + JSON.stringify(pos));
-          return pos.x === creep.pos.x 
-          && pos.y === creep.pos.y 
-          && pos.roomName === creep.pos.roomName;
+          return pos.getRangeTo(creep) === 0;
         }); 
 
         if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
           //console.log(JSON.stringify(idealPositions[0]));
           let roomPos = Game.rooms[idealPositions[0].roomName].getPositionAt(idealPositions[0].x, idealPositions[0].y);
           //console.log(JSON.stringify(roomPos));
-          this.travelTo(roomPos, {range: 0});
+          this.travelTo(roomPos, {range: 0, ignoreCreeps: false});
         }
       } else {
         if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-          this.travelTo(controller, {range: 3, ignoreCreeps: false });
+          this.travelTo(controller, { range: 3, ignoreCreeps: false });
         } else {
           if (this.pos.getRangeTo(controller) > 1) {
             this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));

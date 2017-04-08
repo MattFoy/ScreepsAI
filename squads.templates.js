@@ -50,8 +50,8 @@ module.exports = {
 	],
 
 	smallSabotage: [
-		{ position: 'simpleSaboteur', body: [WORK,MOVE] },
-		{ position: 'simpleSaboteur', body: [WORK,MOVE] }
+		{ position: 'simpleSaboteur', body: [WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleSaboteur', body: [WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE] }
 	],
 	
 	test: [

@@ -108,7 +108,7 @@ module.exports = function() {
       return true;
     }
     this.look().forEach(function(o) {
-      if ( (! ignoreCreeps && o.type === 'creep') 
+      if ((!ignoreCreeps && o.type === 'creep') 
         || (o.type === 'terrain' 
           && o.terrain === 'wall')
         || (o.type === 'structure' 

@@ -1,6 +1,9 @@
 const roles = require('roles');
-
 module.exports = function() {
+
+
+
+
 	Game.sendEnergy = function(fromRoom, toRoom) {
 		let rFromRoom = Game.rooms[fromRoom];
 		if (!rFromRoom) { 
@@ -41,6 +44,10 @@ module.exports = function() {
 		terminal.send(RESOURCE_ENERGY, amountToBurn * costOfSend, toRoom);
 	}
 
+
+
+
+
 	Game.spawnHelpFor = function(roomName, maxSpawn, roleName) {
 		if (!maxSpawn) { maxSpawn = 100; }
 		if (!roleName) { roleName = 'labourer'; }
@@ -64,6 +71,10 @@ module.exports = function() {
 		}
 	}
 
+
+
+
+
 	Game.roomReport = function() {
 		for (var roomName in Game.rooms) {
 			let room = Game.rooms[roomName];
@@ -82,6 +93,10 @@ module.exports = function() {
 	     }
 		}
 	}
+
+
+
+
 
 	Game.spawnReport = function() {
 		for (var roomName in Game.rooms) {
@@ -164,6 +179,23 @@ module.exports = function() {
 			    console.log(line);
 			  });
 			}
+		}
+	}
+
+
+
+
+
+	Game.printBuildQueue = function(roomName) {
+		if (!Memory.empire || !Memory.empire.buildQueues || !Memory.empire.buildQueues[roomName]) {
+			console.log("Invalid room.");
+			return;
+		}
+
+		for (var i = 0; i < Math.min(5, Memory.empire.buildQueues[roomName].length); i++) {
+			let det = Memory.empire.buildQueues[roomName][i];
+			console.log(i + ": " + det.type + ' ' + det.structureType + ' at ' + JSON.stringify(det.pos));
+			console.log(' `--> (' + det.amount + ' / ' + det.amountTotal + ')');
 		}
 	}
 }

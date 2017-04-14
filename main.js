@@ -196,7 +196,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
       }
-      if (Game.time % 9 === 2) {
+      if (Game.time % 3 === 1) {
         utilities.generateBuildQueue(room);
       }
 

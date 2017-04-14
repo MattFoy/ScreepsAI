@@ -339,6 +339,131 @@ function initializeMyRoomMemory(room) {
 }
 initializeMyRoomMemory = profiler.registerFN(initializeMyRoomMemory, 'initializeMyRoomMemory');
 
+function getWallHealthThreshold(room) {
+  if (room.controller && room.controller.my) {
+    switch (room.controller.level) {
+      case 8:
+        return 1000000;
+      case 7:
+        return 400000;
+      case 6:
+        return 200000;
+      default:
+        return 20000;
+    }
+  } else {
+    return 0;
+  }
+}
+
+function generateBuildQueue(room) {
+  if (!Memory.empire) {
+    Memory.empire = {};
+  }
+
+  if (!Memory.empire.buildQueues) {
+    Memory.empire.buildQueues = {};
+  }
+
+  // determine which room is responsible for the structures in this room
+  let responsibleRoom;
+  let responsibleRooms = _.filter(Game.rooms, (r) => r.memory.responsibleForRooms && r.memory.responsibleForRooms.indexOf(room.name) > -1);
+  if (responsibleRooms.length > 0) {
+    responsibleRoom = responsibleRooms[0];
+  } else {
+    if (room.controller && room.controller.my && room.controller.level > 0) {
+      responsibleRoom = room.name;
+    } else {
+      // Not a room we build for.
+      return;
+    }
+  }
+
+  if (!Memory.empire.buildQueues[responsibleRoom]) {
+    Memory.empire.buildQueues[responsibleRoom] = [];
+  }
+
+  Memory.empire.buildQueues[responsibleRoom] = [];
+
+  let priority = {
+    'repair': { },
+    'build': { }
+  }
+
+  priority['repair'][STRUCTURE_CONTAINER] = 95;
+  priority['repair'][STRUCTURE_ROAD] = 90;
+  priority['repair'][STRUCTURE_RAMPART] = 47;
+  priority['repair'][STRUCTURE_WALL] = 4;
+
+  priority['build'][STRUCTURE_TOWER] = 100;
+  priority['build'][STRUCTURE_SPAWN] = 85;
+  priority['build'][STRUCTURE_EXTENSION] = 75;
+  priority['build'][STRUCTURE_CONTAINER] = 65;
+  priority['build'][STRUCTURE_ROAD] = 55;
+  priority['build'][STRUCTURE_LINK] = 5;
+
+  // A method to retrieve the priority, if listed, or 0 otherwise
+  function getPriority(type, structureType) {
+    if (priority[type] && priority[type][structureType]) {
+      return priority[type][structureType];
+    } else {
+      return (type === 'repair') ? 1 : 0;
+    }
+  }
+
+  // Add repairable structures
+  let structures = room.find(FIND_STRUCTURES, { filter: function(s) {
+    if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) 
+      && s.hits < (s.hitsMax * 0.4)) {
+      // a container or road in need of repair
+      return true;
+    } else if (room.controller && room.controller.my) {
+      // in a room I own
+      if ((s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL) 
+        && s.hits > 0 && s.hits < getWallHealthThreshold(room)) {
+        //a wall or rampart beneath the threshold
+        return true;
+      } else if (s.structureType !== STRUCTURE_RAMPART && s.structureType !== STRUCTURE_WALL 
+        && s.structureType !== STRUCTURE_ROAD && s.structureType !== STRUCTURE_CONTAINER
+        && s.hits > 0 && s.hits < s.hitsMax) {
+        // something else... that is damaged...
+        console.log("Something is broken in " + room.name + ", id: " + s.id + ", type: " + s.structureType);
+        return true;
+      }
+    }
+  } });
+  _.map(structures, (s) => Memory.empire.buildQueues[responsibleRoom].push({
+    id: s.id,
+    pos: s.pos,
+    structureType: s.structureType,
+    type: 'repair',
+    amount: s.hits,
+    amountTotal: (s.structureType === STRUCTURE_RAMPART || s.structureType === STRUCTURE_WALL) 
+      ? getWallHealthThreshold(room)
+      : s.hitsMax
+  }));
+
+  // Add building sites
+  let constructionSites = _.filter(Game.constructionSites, (cs) => cs.pos.roomName === room.name);
+  _.map(constructionSites, (s) => Memory.empire.buildQueues[responsibleRoom].push({
+    id: s.id,
+    pos: s.pos,
+    structureType: s.structureType,
+    type: 'build',
+    amount: s.progress,
+    amountTotal: s.progressTotal
+  }));
+
+  // Sort queue
+  Memory.empire.buildQueues[responsibleRoom].sort((a,b) => 
+    (a.structureType === b.structureType 
+      && a.type === 'repair' && b.type === 'repair') 
+    ? b.hits - a.hits
+    : getPriority(b.type, b.structureType) - getPriority(a.type, a.structureType));
+
+}
+generateBuildQueue = profiler.registerFN(generateBuildQueue, 'generateBuildQueue');
+
 module.exports = {
   bodyCost: function(body) {
     return _.reduce(body, (memo,bodyPart) => memo + Number.parseInt(BODYPART_COST[bodyPart]), 0);
@@ -358,5 +483,7 @@ module.exports = {
 
   calculateDefense: calculateDefense,
 
-  calculateDefendersRequired: calculateDefendersRequired
+  calculateDefendersRequired: calculateDefendersRequired,
+
+  generateBuildQueue: generateBuildQueue
 };

@@ -59,7 +59,7 @@ let roleTrucker = {
   determineBodyParts: function(room) {
     let maxEnergy = room.energyCapacityAvailable;
 
-    var segment = [CARRY,CARRY,MOVE];
+    var segment = [CARRY,MOVE];
     var body = [];
     var segmentCost = _.sum(segment, (p) => BODYPART_COST[p]);
 

@@ -81,7 +81,7 @@ let roleMiner = {
     if (flag) {
       if (flag.pos.roomName !== room.name) {
         if (flag.room && flag.room.controller) {
-          if (flag.room && (flag.room.controller.reservation || flag.room.controller.my)) {
+          if (flag.room.controller.reservation || flag.room.controller.my) {
             if (maxEnergy >= 1300) {
               return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
             } else if (maxEnergy >= 800) {
@@ -95,6 +95,7 @@ let roleMiner = {
             if (maxEnergy >= 550) {
               return [WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE];
             } else {
+              // this should not occur...
               return [WORK, WORK, MOVE];
             }
           }
@@ -111,9 +112,17 @@ let roleMiner = {
             return [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
           }
         }
+      } else {
+        // a claimed room, so don't go up to the "3000" energy case, 
+        // just 1300 since containers decay less rapidly
+        if (maxEnergy >= 1300) {
+          return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
+        } else if (maxEnergy >= 800) {
+          return [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+        }
       }
-    }
-    
+    } 
+
     if (maxEnergy >= 550) {
       return [WORK, WORK, WORK, WORK, WORK, MOVE];  
     } else {

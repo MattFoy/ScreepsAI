@@ -12,6 +12,12 @@ let roleSuicide = {
     } else if (creep.getActiveBodyparts(MOVE) === 0) {
         creep.suicide();
     } else {
+      if (creep.memory.previousRole 
+        && creep.memory.reason === 'wounded' 
+        && creep.hits >= creep.hitsMax) {
+        creep.memory.role = creep.memory.previousRole;
+      }
+            
       if (creep.room.name !== creep.memory.origin) {
         creep.travelTo(Game.rooms[creep.memory.origin].controller);
       } else {
@@ -19,12 +25,6 @@ let roleSuicide = {
         if (spawn) {
           if (spawn.recycleCreep(creep) === ERR_NOT_IN_RANGE) {
             creep.travelTo(spawn, {range: 1});
-            
-            if (creep.memory.previousRole 
-              && creep.memory.reason === 'wounded' 
-              && creep.hits >= creep.hitsMax) {
-              creep.memory.role = creep.memory.previousRole;
-            }
           }
         }
       }

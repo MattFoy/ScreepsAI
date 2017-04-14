@@ -112,7 +112,7 @@ module.exports.loop = function () { profiler.wrap(function() {
             roomName: flag.pos.roomName
           };
 
-          ['tactic', 'target', 'medicTent'].forEach(function(name) {
+          ['tactic', 'target', 'medicTent', 'regroup'].forEach(function(name) {
             if (flag.memory[name]) {
               GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId][name] = flag.memory[name];
             }
@@ -190,75 +190,8 @@ module.exports.loop = function () { profiler.wrap(function() {
       
       utilities.calculateHaulingEconomy(room);
 
-      if (Game.time % 3 === 0) {
-        // if (room.name === 'W88S41' && room.controller.level >= 2) {
-        //   room.createConstructionSite(31, 19, STRUCTURE_TOWER);
-        //   room.createConstructionSite(35, 18, STRUCTURE_EXTENSION);
-        //   room.createConstructionSite(36, 18, STRUCTURE_EXTENSION);
-        //   room.createConstructionSite(36, 17, STRUCTURE_EXTENSION);
-        //   room.createConstructionSite(37, 17, STRUCTURE_EXTENSION);
-        //   room.createConstructionSite(37, 16, STRUCTURE_EXTENSION);
-        // }
-
-        room.memory.responsibleForRooms.concat(room.name).forEach(function(rName) {
-          //console.log('Reponsible for: ' + rName);
-          let rRoom;
-          if (rName === room.name) { rRoom = room; } else { rRoom = Game.rooms[rName]; }
-
-          if (rRoom) {
-            let hostiles = rRoom.getHostilesDetails(GameState);
-            
-            if (_.filter(hostiles, (d) => d.owner !== 'Source Keeper').length > 0) {
-              console.log('<span style="color:red">HOSTILES DETECTED</span> IN <a href="#!/room/' + rName + '">' + rName + '</a>');
-              
-              if (_.filter(Game.creeps, (c) => c.memory.role === 'skSentry' 
-                && Game.flags[c.memory.roleSpecificFlag].pos.roomName === rRoom.name) <= 0) {
-
-                let res = utilities.calculateDefendersRequired(room, hostiles);
-                console.log(res);
-
-                if (res.length > 0) {
-                  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName]) {
-                    GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName] = [];
-                  }
-
-                  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName].length) {
-                    let squad = _.map(res, function(body) { return { name: null, body: body }; });
-                    GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName] = squad;
-                  } else {
-                    // already calculated squad... but we SHOULD recheck to see if mroe hostiles have appeared...
-                    let squadDeath = false;
-                    for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName].length; i++) {
-                      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName][i].name && !Game.creeps[GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName][i].name]) {
-                        console.log(GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName][i].name + ' died...');
-                        squadDeath = true;
-                      }
-                    }
-                    if (squadDeath) {
-                      delete GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName];
-                    }
-                  }
-                } else {              
-                  if (GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName]) {
-                     delete GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName];
-                  }
-                }
-                
-                if (room.memory.defend.indexOf(rName) === -1) { 
-                  room.memory.defend.push(rName); 
-                }
-              }
-            } else {
-              let idx = room.memory.defend.indexOf(rName);
-              if (idx > -1) { room.memory.defend.splice(idx, 1); }
-              if (GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName]) {
-                 delete GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[rName];
-              }
-            }
-          } else {
-            //console.log(' --> <a href="#!/room/' + rName + '">' + rName + '</a> not visible');
-          }
-        });
+      if (Game.time % 1 === 0) {
+        utilities.calculateDefense(room);
       }
 
       //console.log(Game.cpu.getUsed());

@@ -92,7 +92,12 @@ module.exports = {
 				if (!creep.goFight()) {
           //creep.moveTo(flag);
           // nothing to fight?
-          console.log('Attack done')
+          console.log('Attack done');
+
+          if (squad.regroup) {
+          	console.log("regrouping to: " + JSON.stringify(squad.regroup));
+          	creep.travelTo(squad.regroup, { range: 2 });
+          }
         } else {
           //battleCry = true;
           console.log('Attacking...');
@@ -133,9 +138,9 @@ module.exports = {
 
 			let moving = false;
 			if (woundedSquadMembers.length > 0) {
+				creep.moveTo(woundedSquadMembers[0]);
+				moving = true;
 				if (creep.heal(woundedSquadMembers[0]) === ERR_NOT_IN_RANGE) {
-					creep.moveTo(woundedSquadMembers[0]);
-					moving = true;
 					if (creep.pos.getRangeTo(woundedSquadMembers[0]) <= 3) {
 						creep.rangedHeal(woundedSquadMembers[0]);	
 					} else {

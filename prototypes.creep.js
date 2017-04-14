@@ -48,7 +48,7 @@ module.exports = function() {
       }
     );
 
-    if (ret.path) {
+    if (ret.path && ret.path.length > 0) {
       let step = ret.path[0];
       this.move(this.pos.getDirectionTo2(step.x, step.y));
     }
@@ -142,36 +142,39 @@ module.exports = function() {
   }
 
   Creep.prototype.goReinforce = function() {
-    if (!this.memory.reinforcing) {
+    if (this.memory.reinforce 
+      && this.memory.reinforce.time 
+      && this.memory.reinforce.time - Game.time > 1) {
+      delete this.memory.reinforce;
+    }
+
+    if (!this.memory.reinforce) {
+      this.memory.reinforce = {};
+      this.memory.reinforce.time = Game.time;
+    }
+
+    if (!this.memory.reinforce.targetID) {
       let walls = Game.rooms[this.memory.origin].find(FIND_STRUCTURES, {
         filter: function(object) {
           return (object.structureType === STRUCTURE_WALL
             || object.structureType === STRUCTURE_RAMPART)
-            && object.hits > 0 && object.my;
+            && object.hits > 0;
         }
       });
 
       let creep = this;
-      walls.sort((a,b) => (a.hits !== b.hits) ? a.hits - b.hits : a.pos.getRangeTo(creep) - b.pos.getRangeTo(creep));
-
-      for(var i = 0; i < walls.length; i++) {
-        if (this.pos.getRangeTo(walls[i]) <= 1) {
-          return walls[i];
-        } else {
-          target = this.pos.findClosestByPath([walls[i]]);
-          if (target) { return target; }
-        }
-      }
-
-      if (target) {
-        creep.memory.reinforcing = target.id
+      walls.sort((a,b) => (a.hits !== b.hits) 
+        ? a.hits - b.hits 
+        : a.pos.getRangeTo(creep) - b.pos.getRangeTo(creep));
+      if (walls.length > 0) {
+        this.memory.reinforce.targetID = walls[0].id
       }
     }
     
-    if (creep.memory.reinforcing) {
-      let target = Game.getObjectById(creep.memory.reinforcing);
-      if (creep.repair(target) === ERR_NOT_IN_RANGE) {
-        creep.travelTo(target, { range: 3 });
+    if (this.memory.reinforce.targetID) {
+      let target = Game.getObjectById(this.memory.reinforce.targetID);
+      if (this.repair(target) === ERR_NOT_IN_RANGE) {
+        this.travelTo(target, { range: 3 });
       }
       return true;
     }

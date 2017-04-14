@@ -181,7 +181,7 @@ let roleBuilder = {
           if (!target.room) { 
             creep.travelTo({x: 25, y: 25, roomName: target.pos.roomName});
           } else if (creep.room.name !== target.room.name) {
-            creep.travelTo(target, { range: 3 });
+            creep.travelTo(target, { range: 1 });
             task += "-T";
           } else {
             if (target instanceof ConstructionSite) {
@@ -222,8 +222,13 @@ let roleBuilder = {
         if (creep.room.name !== creep.memory.origin) {
           creep.travelTo(Game.rooms[creep.memory.origin].controller, {range: 1});
         } else {
-          creep.goUpgrade();
-          task = "Upgr";
+          if (Game.rooms[creep.memory.origin].controller.level === 8) {
+            creep.goReinforce();
+            task = "Ref";
+          } else {
+            creep.goUpgrade();
+            task = "Upgr";  
+          }          
         }
       }
     } else {

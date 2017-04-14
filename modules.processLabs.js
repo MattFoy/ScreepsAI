@@ -11,17 +11,27 @@ function processLabs(room) {
     if (!room.memory.science.inputLabs) {
       room.memory.science.inputLabs = [];
     }
-
-    _.filter(labs, function(l1) {
-      let inRangeToAll = true;
-      labs.forEach((l2) => inRangeToAll = inRangeToAll && l1.pos.getRangeTo(l2) <= 2);
-      if (inRangeToAll) {
-        room.visual.text('o', l1.pos.x, l1.pos.y);
-        if (room.memory.science.inputLabs.length < 2) {
-          room.memory.science.inputLabs.push(l1.id);
-        }
+    if (!room.memory.science.labCount) {
+      room.memory.science.labCount = labs.length;
+    } else {
+      if (labs.length !== room.memory.science.labCount) {
+        room.memory.science.inputLabs = [];
       }
-    });
+    }
+
+    if (room.memory.science.inputLabs.length !== 2) {
+      console.log("Determining input labs.");
+      _.filter(labs, function(l1) {
+        let inRangeToAll = true;
+        labs.forEach((l2) => inRangeToAll = inRangeToAll && l1.pos.getRangeTo(l2) <= 2);
+        if (inRangeToAll) {
+          room.visual.text('o', l1.pos.x, l1.pos.y);
+          if (room.memory.science.inputLabs.length < 2) {
+            room.memory.science.inputLabs.push(l1.id);
+          }
+        }
+      });
+    }
 
     if (room.memory.science.inputLabs.length === 2) {
       //room.visual.text('i',)

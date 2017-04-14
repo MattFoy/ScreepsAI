@@ -3,8 +3,8 @@ require('prototypes.room')();
 "use strict";
 const REPORT_CPU_THRESHOLD = 50;
 const DEFAULT_MAXOPS = 20000;
-const DEFAULT_STUCK_VALUE = 5;
-const DEFAULT_STUCK_PATH_DURATION = 10;
+const DEFAULT_STUCK_VALUE = 4;
+const DEFAULT_STUCK_PATH_DURATION = 8;
 class Traveler {
     constructor() {
         // change this memory path to suit your needs
@@ -191,20 +191,23 @@ class Traveler {
         }
         // handle case where creep is stuck
         if (travelData.stuck >= DEFAULT_STUCK_VALUE && !options.ignoreStuck) {
-            if (options.ignoreCreeps) {
-                options.ignoreCreeps = false;
+            if (options.ignoreCreeps === false) {
                 travelData.ignoreCreepsChanged = true;
             }
+            options.ignoreCreeps = false;
             travelData.isStuck = Game.time + DEFAULT_STUCK_PATH_DURATION;
             delete travelData.path;
+            creep.say("Stuck.");
         }
-        if (travelData.isStuck - Game.time > 1) {
+
+        if (travelData.isStuck && travelData.isStuck - Game.time < 1) {
             delete travelData.isStuck;
             delete travelData.path;
             if (travelData.ignoreCreepsChanged) {
                 delete travelData.ignoreCreepsChanged;
                 options.ignoreCreeps = true;
             }
+            creep.say("Unstuck.");
         }
         // handle case where creep wasn't traveling last tick and may have moved, but destination is still the same
         if (Game.time - travelData.tick > 1 && hasMoved) {

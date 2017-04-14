@@ -19,6 +19,12 @@ let roleBellhop = {
     if(creep.memory.carrying && _.sum(creep.carry) == 0) {
       creep.memory.carrying = false;
     }
+    
+    if (!creep.room.storage) {
+        console.log('Bellhop, no sotrage: ' + creep.name + ': ' + JSON.stringify(creep.pos));
+        creep.memory.returnToOrigin = true;
+        return;
+    }
 
     let linkNeedsTending = false;
     let linkNeedsFilling = false;
@@ -143,6 +149,11 @@ let roleBellhop = {
 
     if (creep.memory.bellhopTask === "lnk_i") {
       let link = Game.getObjectById(creep.room.memory.receivingLink);
+      if (!link) { 
+          creep.memory.bellhopTask = 'idle';
+          creep.room.memory.receivingLink = undefined;
+          return;
+      }
       if (creep.memory.carrying) {
         if (creep.transfer(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           creep.travelTo(creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y), {range: 0});

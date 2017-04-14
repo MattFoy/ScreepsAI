@@ -121,6 +121,17 @@ let roleMiner = {
     }    
   },
 
+  reservableFilter: function(reservable) {
+    let flag = Game.flags[reservable];
+    if (!flag || !flag.room) { return false; } // just assume the mineral is on cooldown in rooms we don't have vision on...
+    
+    if (flag.room.controller && flag.room.controller.my && flag.room.energyCapacityAvailable < 550) { 
+      return false;
+    } else {
+      return true;
+    }
+  },
+
   determinePriority: function(room, rolesInRoom) {
     return 40 + (rolesInRoom['miner'] ? rolesInRoom['miner'].length * 3 : 0);  
   }

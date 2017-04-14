@@ -18,12 +18,12 @@ function processLinks(room) {
 
   // determine the "storage" link
   if (links.length > 0 && !room.memory.receivingLink) {
-    //console.log("Finding optimal Receiving Link");
+    console.log(room.name + ": Finding optimal Receiving Link");
     let minRange = 2;
     let link = null;
 
     for (let i = 0; i < links.length; i++) {
-      if (links[i].pos.getRangeTo(room.storage) < minRange) {
+      if (links[i].pos.getRangeTo(room.storage) <= minRange) {
         link = links[i];
       }
     }
@@ -34,12 +34,11 @@ function processLinks(room) {
 
   // determine the "upgraders" link
   if (links.length > 0 && !room.memory.controllerLink) {
-    //console.log("Finding optimal Receiving Link");
     let minRange = 4;
     let link = null;
 
     for (let i = 0; i < links.length; i++) {
-      if (links[i].pos.getRangeTo(room.controller) < minRange) {
+      if (links[i].pos.getRangeTo(room.controller) <= minRange) {
         link = links[i];
       }
     }

@@ -311,7 +311,7 @@ module.exports.loop = function () { profiler.wrap(function() {
     }
   }
 
-  if (Game.time % 5 === 4) {
+  if (Game.time % 12 === 4) {
     (function(){
       // Don't overwrite things if other modules are putting stuff into Memory.stats
       if (Memory.stats == null) {

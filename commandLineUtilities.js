@@ -11,7 +11,7 @@ module.exports = function() {
 			for (var name in Game.spawns) {
 				let spawn = Game.spawns[name];
 				if (!spawn.spawning && maxSpawn > 0) {
-					if (Game.map.getRoomLinearDistance(spawn.pos.roomName, roomName) < 8) {
+					if (Game.map.getRoomLinearDistance(spawn.pos.roomName, roomName) <= 5) {
 						let result = spawn.createCreep([WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY,WORK,MOVE,CARRY]
 							, undefined, { origin: origin.name, role: roleName, returnToOrigin: true });
 						if (typeof result === 'string') { maxSpawn--; }

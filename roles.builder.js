@@ -35,12 +35,7 @@ let roleBuilder = {
       creep.memory.building = true;
     }
 
-    /*if (creep.room.name !== creep.memory.origin 
-      && Game.rooms[creep.memory.origin].memory.defend.indexOf(creep.room.name) > -1) {
-      creep.memory.returnToOrigin = true;
-      creep.memory.buildOrRepairId = null;
-    }*/
-
+    
     if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 5000) {
       creep.memory.buildOrRepairId = null;          
     }

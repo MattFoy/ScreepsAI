@@ -97,7 +97,7 @@ let roleBellhop = {
 
           if (creep.room.memory.tradingPlan.resourceQuantities[resource]
             && terminalAmount < quotaAmount) {
-            console.log(resource + ': ' + creep.room.terminal.store[resource] + ', < ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
+            //console.log(resource + ': ' + creep.room.terminal.store[resource] + ', < ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
             terminalNeedsResourceStocking = true;
           }
         }
@@ -114,7 +114,7 @@ let roleBellhop = {
           if (resource === RESOURCE_ENERGY) { continue; }
           if (creep.room.terminal.store[resource] && creep.room.memory.tradingPlan.resourceQuantities[resource] 
             && creep.room.terminal.store[resource] > creep.room.memory.tradingPlan.resourceQuantities[resource]) {
-            console.log(resource + ': ' + creep.room.terminal.store[resource] + ', > ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
+            //console.log(resource + ': ' + creep.room.terminal.store[resource] + ', > ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
             terminalNeedsResourceDraining = true;
           }
         }

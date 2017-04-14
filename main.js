@@ -177,8 +177,11 @@ module.exports.loop = function () { profiler.wrap(function() {
   
   modules.processCreeps();
 
-  if (Game.time % 5 !== 1) {
   for(let roomName in Game.rooms) {
+    if (Game.cpu.bucket < 9000 && Game.time % 3 === 0) {
+      break;
+    }
+
     let room = Game.rooms[roomName];    
     utilities.initializeRoomMemory(room);
 
@@ -190,8 +193,11 @@ module.exports.loop = function () { profiler.wrap(function() {
       
       utilities.calculateHaulingEconomy(room);
 
-      if (Game.time % 1 === 0) {
+      if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
+      }
+      if (Game.time % 9 === 2) {
+        utilities.generateBuildQueue(room);
       }
 
       //console.log(Game.cpu.getUsed());
@@ -202,31 +208,36 @@ module.exports.loop = function () { profiler.wrap(function() {
       modules.processLabs(room);
       //console.log(Game.cpu.getUsed());
 
-      if (Game.time % 2 === 0) {
+      if (Game.time % 3 === 1) {
         modules.processSpawning(room);
         //console.log(Game.cpu.getUsed());
       }
 
-      if (room.storage && room.terminal) {
-        room.memory.tradingPlan = {};
-        room.memory.tradingPlan.resourceQuantities = {};
+      if (Game.time % 6 === 2) {
+        if (room.storage && room.terminal) {
+          room.memory.tradingPlan = {};
+          room.memory.tradingPlan.resourceQuantities = {};
 
-        for (var resourceIdx in RESOURCES_ALL) {
-          let resource = RESOURCES_ALL[resourceIdx];
-          let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0);
-          let terminalAmount = 0;
-          if (room.terminal.store[resource]) {
-            terminalAmount = room.terminal.store[resource];
+          for (var resourceIdx in RESOURCES_ALL) {
+            let resource = RESOURCES_ALL[resourceIdx];
+            let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0);
+            let terminalAmount = 0;
+            if (room.terminal.store[resource]) {
+              terminalAmount = room.terminal.store[resource];
+            }
+            room.memory.tradingPlan.resourceQuantities[resource] = Math.min(qtyAvailable, Math.min(100000, Math.max(5000, (terminalAmount + qtyAvailable) - 100000)));
           }
-          room.memory.tradingPlan.resourceQuantities[resource] = Math.min(qtyAvailable, Math.min(100000, Math.max(5000, (terminalAmount + qtyAvailable) - 100000)));
-        }
-        room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
+          room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
+          if (room.storage && room.storage.store[RESOURCE_ENERGY] > 500000) {
+            room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = 100000;
+          }
 
-        //console.log(room.name + ': ' + Game.cpu.getUsed());
-        if (room.terminal && Game.time % 100 === 37) {
-          // do market stuff
-          // todo...
-          //room.terminal.storeHistoricalPriceData();
+          //console.log(room.name + ': ' + Game.cpu.getUsed());
+          if (room.terminal && Game.time % 100 === 37) {
+            // do market stuff
+            // todo...
+            //room.terminal.storeHistoricalPriceData();
+          }
         }
       }
 
@@ -274,7 +285,6 @@ module.exports.loop = function () { profiler.wrap(function() {
       };
     })(); // collect_stats
   }
-}
 
-require('commandLineUtilities')();
+  require('commandLineUtilities')();
 });}

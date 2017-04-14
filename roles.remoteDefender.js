@@ -194,7 +194,7 @@ let roleRemoteDefender = {
         && c.memory.role === 'remoteDefender' 
         && c.memory.roomToDefend === room.memory.defend[i]
       ).length;
-      console.log(currentDefenders);
+      //console.log("Current defenders: " + currentDefenders);
       if (currentDefenders >= 1) { continue; }
 
       if (GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads[room.memory.defend[i]]) {

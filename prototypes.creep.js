@@ -158,7 +158,7 @@ module.exports = function() {
         filter: function(object) {
           return (object.structureType === STRUCTURE_WALL
             || object.structureType === STRUCTURE_RAMPART)
-            && object.hits > 0;
+            && object.hits > 0 && object.hits < object.hitsMax;
         }
       });
 
@@ -168,6 +168,8 @@ module.exports = function() {
         : a.pos.getRangeTo(creep) - b.pos.getRangeTo(creep));
       if (walls.length > 0) {
         this.memory.reinforce.targetID = walls[0].id
+      } else {
+        console.log("No walls to reinforce?");
       }
     }
     

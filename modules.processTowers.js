@@ -36,12 +36,12 @@ function processTowers(room) {
         }
       }
       if(target) {
-        console.log("Attacking: " + target);
+        //console.log("Attacking: " + target);
         tower.attack(target);
       } else {
         var closestWoundedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, { filter: (c) => (c.hits > 0 && c.hits < c.hitsMax) }); 
         if (closestWoundedCreep) {
-          console.log("Healing: " + closestWoundedCreep);
+          //console.log("Healing: " + closestWoundedCreep);
           tower.heal(closestWoundedCreep);
         } else {
           if (tower.energy > (tower.energyCapacity * 0.95)) {

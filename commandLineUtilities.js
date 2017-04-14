@@ -1,6 +1,46 @@
 const roles = require('roles');
 
 module.exports = function() {
+	Game.sendEnergy = function(fromRoom, toRoom) {
+		let rFromRoom = Game.rooms[fromRoom];
+		if (!rFromRoom) { 
+			console.log("Invalid fromRoom: " + fromRoom); 
+			return;
+		}
+		let rToRoom = Game.rooms[toRoom];
+		if (!rToRoom) {
+			console.log("Invalid toRoom: " + fromRoom); 
+			return;
+		}
+
+		let terminal = rFromRoom.terminal;
+		if (!terminal) {
+			console.log("No terminal in fromRoom: " + fromRoom); 
+			return;
+		}
+
+		let terminal2 = rToRoom.terminal;
+		if (!terminal2) {
+			console.log("No terminal in toRoom: " + fromRoom); 
+			return;
+		}
+
+		if (!terminal.store[RESOURCE_ENERGY] || terminal.store[RESOURCE_ENERGY] < 20000) {
+			console.log("Not enough energy, " + terminal.store[RESOURCE_ENERGY] + ", in fromRoom: " + fromRoom);
+			return;
+		}
+
+		if (_.sum(terminal2.store) > 280000) {
+			console.log("Destination terminal almost full: " + _.sum(terminal2.store));
+			return;
+		}
+		let transactionRatio = Game.market.calcTransactionCost(1, fromRoom, toRoom);
+		// send about two thirds of the energy
+		let amountToBurn = (terminal.store[RESOURCE_ENERGY] * 0.667);
+		let costOfSend = 1 / (1 + transactionRatio);
+		terminal.send(RESOURCE_ENERGY, amountToBurn * costOfSend, toRoom);
+	}
+
 	Game.spawnHelpFor = function(roomName, maxSpawn, roleName) {
 		if (!maxSpawn) { maxSpawn = 100; }
 		if (!roleName) { roleName = 'labourer'; }

@@ -61,45 +61,14 @@ module.exports = function() {
     } else {
       let controller = Game.rooms[this.memory.origin].controller;
 
-      let sources = controller.pos.findInRange(FIND_STRUCTURES, 4, { filter: (s) =>
-        (s.structureType === STRUCTURE_CONTAINER && s.pos.findClosestByRange(FIND_SOURCES).pos.getRangeTo(s) > 1)
-          || s.structureType === STRUCTURE_STORAGE 
-          || s.structureType === STRUCTURE_LINK
-      });
-
-      if (sources.length > 0) {
-        let idealPositions = [];
-        this.room.memory.upgradeSweetSpots = undefined;
-
-        if (this.room.memory.upgradeSweetSpots) {
+      let idealPositions = [];
+      if (this.room.memory.sweetUpgrades) {
+        try {
           idealPositions = JSON.parse(this.room.memory.upgradeSweetSpots);
-          //console.log(this.room.name + ', ' + 'yay');
-        } else {
-          let idealSources = _.filter(sources, (s) => s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_LINK);
-          if (idealSources.length > 0)  {
-            if (!this.room.memory.sweetUpgrades) {
-              this.room.memory.sweetUpgrades = idealSources[0].id;
-            }
-          }
-          let minX = _.min(sources.concat(controller), function(s) { return s.pos.x }).pos.x - 1;
-          let minY = _.min(sources.concat(controller), function(s) { return s.pos.y }).pos.y - 1;
-          let maxX = _.max(sources.concat(controller), function(s) { return s.pos.x }).pos.x + 1;
-          let maxY = _.max(sources.concat(controller), function(s) { return s.pos.y }).pos.y + 1;
+        } catch (e) { }
+      }
 
-          for(let y = minY; y <= maxY; y++) {
-            for (let x = minX; x <= maxX; x++) {
-              let pos = this.room.getPositionAt(x, y);
-              if (pos.isPathable(true)
-                && pos.getRangeTo(controller) <= 3 
-                && pos.getRangeTo(pos.findClosestByRange(sources)) <= 1) {
-                idealPositions.push({ x: x, y: y, roomName: this.room.name });
-                //this.room.visual.text('x', x, y);
-              }
-            }
-          }
-          this.room.memory.upgradeSweetSpots = JSON.stringify(idealPositions);
-        }
-
+      if (idealPositions.length && idealPositions.length > 0) {
         if (this.pos.getRangeTo(controller) <= 3) {
           this.upgradeController(controller);
         }

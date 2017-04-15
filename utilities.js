@@ -94,6 +94,21 @@ function pruneMemory() {
       delete GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms[name];
     }
   }
+
+  for (let id in Memory.empire.buildQueueAssignments) {
+    let creep = Game.creeps[Memory.empire.buildQueueAssignments[id]];
+    if (!creep) {
+      // creep died, clear assignment
+      delete Memory.empire.buildQueueAssignments[id];
+    } else if (creep.memory) {
+      if (creep.memory.buildOrRepair && creep.memory.buildOrRepair.id === id) {
+        // still working
+      } else {
+        // creep is working on something new, clear assignment
+        delete Memory.empire.buildQueueAssignments[id];
+      }
+    }
+  }
 }
 pruneMemory = profiler.registerFN(pruneMemory, 'pruneMemory');
 
@@ -369,9 +384,9 @@ function generateBuildQueue(room) {
   let responsibleRoom;
   let responsibleRooms = _.filter(Game.rooms, (r) => r.memory.responsibleForRooms && r.memory.responsibleForRooms.indexOf(room.name) > -1);
   if (responsibleRooms.length > 0) {
-    responsibleRoom = responsibleRooms[0];
+    responsibleRoom = responsibleRooms[0].name;
   } else {
-    if (room.controller && room.controller.my && room.controller.level > 0) {
+    if (room.controller && room.controller.my && room.controller.level && room.controller.level > 0) {
       responsibleRoom = room.name;
     } else {
       // Not a room we build for.
@@ -383,8 +398,6 @@ function generateBuildQueue(room) {
     Memory.empire.buildQueues[responsibleRoom] = [];
   }
 
-  Memory.empire.buildQueues[responsibleRoom] = [];
-
   let priority = {
     'repair': { },
     'build': { }
@@ -392,22 +405,24 @@ function generateBuildQueue(room) {
 
   priority['repair'][STRUCTURE_CONTAINER] = 95;
   priority['repair'][STRUCTURE_ROAD] = 90;
-  priority['repair'][STRUCTURE_RAMPART] = 47;
-  priority['repair'][STRUCTURE_WALL] = 4;
+  priority['repair'][STRUCTURE_RAMPART] = 0;
+  priority['repair'][STRUCTURE_WALL] = 0;
 
   priority['build'][STRUCTURE_TOWER] = 100;
   priority['build'][STRUCTURE_SPAWN] = 85;
   priority['build'][STRUCTURE_EXTENSION] = 75;
   priority['build'][STRUCTURE_CONTAINER] = 65;
+  priority['build'][STRUCTURE_TERMINAL] = 57;
+  priority['build'][STRUCTURE_EXTRACTOR] = 56;
   priority['build'][STRUCTURE_ROAD] = 55;
-  priority['build'][STRUCTURE_LINK] = 5;
+  priority['build'][STRUCTURE_LINK] = 54;
 
   // A method to retrieve the priority, if listed, or 0 otherwise
   function getPriority(type, structureType) {
     if (priority[type] && priority[type][structureType]) {
       return priority[type][structureType];
     } else {
-      return (type === 'repair') ? 1 : 0;
+      return (type === 'build') ? 1 : 0;
     }
   }
 
@@ -464,26 +479,218 @@ function generateBuildQueue(room) {
 }
 generateBuildQueue = profiler.registerFN(generateBuildQueue, 'generateBuildQueue');
 
+function initGameState() {
+  global.GameState = {};
+  GameState.username = _.sample(Game.structures).owner.username;
+  GameState.verbose = true;
+  GameState.constants = {
+    MEMORY_CRITICAL: 0,
+    MEMORY_ECONOMIC_TRENDS: 1,
+    MEMORY_STATS: 2,
+    CARTOGRAPHY: 3
+  };
+  GameState.memory = {};
+  GameState.allies = [];
+  GameState.cpuUsedToLoad = Game.cpu.getUsed();
+  
+  //console.log(GameState.cpuUsedToLoad);
+
+  RawMemory.setActiveSegments([
+    GameState.constants.MEMORY_CRITICAL, 
+    GameState.constants.MEMORY_ECONOMIC_TRENDS,
+    GameState.constants.MEMORY_STATS,
+    GameState.constants.CARTOGRAPHY
+  ]);
+
+  for (var i in GameState.constants) {
+    if (RawMemory.segments[GameState.constants[i]]) {
+      GameState.memory[GameState.constants[i]] = JSON.parse(RawMemory.segments[GameState.constants[i]]);
+    } else {
+      GameState.memory[GameState.constants[i]] = {};
+    }
+  }
+
+  if (!GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms) {
+    GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms = {};
+  }
+
+  if (!GameState.memory[GameState.constants.CARTOGRAPHY].costMatrices) {
+    GameState.memory[GameState.constants.CARTOGRAPHY].costMatrices = {};
+  }
+
+  if (!GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration) {
+    GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration = {};
+  }
+
+  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].rooms) {
+    GameState.memory[GameState.constants.MEMORY_CRITICAL].rooms = {};
+  }
+
+  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads) {
+    GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads = {};
+  }
+  
+  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
+    GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads = {};
+  }
+
+  for (var name in Game.flags) {
+    let match = /ATTACK_(.*)/.exec(name);
+    if (match) {
+      let attackId = match[1];
+      if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId]) {
+        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId] = {};
+      }
+
+      let flag = Game.flags[name];
+
+      if (flag.memory.launch && flag.memory.tactic && !flag.memory.initialized) {
+        if (flag.memory.tactic) {
+          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].rallyPoint = {
+            x: flag.pos.x,
+            y: flag.pos.y,
+            roomName: flag.pos.roomName
+          };
+
+          ['tactic', 'target', 'medicTent', 'regroup'].forEach(function(name) {
+            if (flag.memory[name]) {
+              GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId][name] = flag.memory[name];
+            }
+          })
+
+          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].squad = 
+            _.map(squads.templates[flag.memory.tactic], function(s){ return { name: null, position: s.position, body: s.body } });
+        }
+
+        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].status = 'forming';
+        flag.memory.initialized = true;
+      }
+    }
+  }
+
+  for (var name in GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
+    if (!Game.flags['ATTACK_' + name]) {
+      delete GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name];
+    } else {
+      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'forming') {
+        let formed = true;
+        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
+          if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name) {
+            formed = false;
+            break;
+          }
+        }
+
+        if (formed) {
+          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'rallying'
+        }
+      }
+
+      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'rallying') {
+        let rallied = true;
+        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
+          let creep = Game.creeps[GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name];
+          if (!creep) {
+            console.log("Error, creep doesnt exist?")
+          } else {
+            if ((creep.room.name !== GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.roomName)
+              || (creep.pos.getRangeTo(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.x, GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.y) > 4)) {
+              rallied = false;
+              break;
+            } 
+          }
+        }
+
+        if (rallied) {
+          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'ready'
+        }
+      }      
+    }
+  }
+}
+initGameState = profiler.registerFN(initGameState, 'initGameState');
+
+function generateUpgradeSweetSpots(room) {
+  let sources = room.controller.pos.findInRange(FIND_STRUCTURES, 4, { filter: (s) =>
+    (s.structureType === STRUCTURE_CONTAINER && s.pos.findClosestByRange(FIND_SOURCES).pos.getRangeTo(s) > 1)
+      || s.structureType === STRUCTURE_STORAGE 
+      || s.structureType === STRUCTURE_LINK
+  });
+
+  if (sources.length > 0) {
+    let idealPositions = [];
+    room.memory.upgradeSweetSpots = undefined;
+
+    let idealSources = _.filter(sources, (s) => s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_LINK);
+    if (idealSources.length > 0)  {
+      if (!room.memory.sweetUpgrades) {
+        room.memory.sweetUpgrades = idealSources[0].id;
+      }
+    }
+    let minX = _.min(sources.concat(room.controller), function(s) { return s.pos.x }).pos.x - 1;
+    let minY = _.min(sources.concat(room.controller), function(s) { return s.pos.y }).pos.y - 1;
+    let maxX = _.max(sources.concat(room.controller), function(s) { return s.pos.x }).pos.x + 1;
+    let maxY = _.max(sources.concat(room.controller), function(s) { return s.pos.y }).pos.y + 1;
+
+    for(let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        let pos = room.getPositionAt(x, y);
+        if (pos.isPathable(true)
+          && pos.getRangeTo(room.controller) <= 3 
+          && pos.getRangeTo(pos.findClosestByRange(sources)) <= 1) {
+          idealPositions.push({ x: x, y: y, roomName: room.name });
+          room.visual.text('x', x, y);
+        }
+      }
+    }
+    room.memory.upgradeSweetSpots = JSON.stringify(idealPositions);
+  }
+}
+generateUpgradeSweetSpots = profiler.registerFN(generateUpgradeSweetSpots, 'generateUpgradeSweetSpots');
+
+function setupTerminalTradingPlan(room) {
+  if (room.storage && room.terminal) {
+    room.memory.tradingPlan = {};
+    room.memory.tradingPlan.resourceQuantities = {};
+
+    for (var resourceIdx in RESOURCES_ALL) {
+      let resource = RESOURCES_ALL[resourceIdx];
+      let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0);
+      let terminalAmount = 0;
+      if (room.terminal.store[resource]) {
+        terminalAmount = room.terminal.store[resource];
+      }
+      room.memory.tradingPlan.resourceQuantities[resource] = Math.min(qtyAvailable, Math.min(100000, Math.max(5000, (terminalAmount + qtyAvailable) - 100000)));
+    }
+    room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
+    if (room.storage && room.storage.store[RESOURCE_ENERGY] > 500000) {
+      room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = 100000;
+    }
+
+    //console.log(room.name + ': ' + Game.cpu.getUsed());
+    if (room.terminal && Game.time % 100 === 37) {
+      // do market stuff
+      // todo...
+      //room.terminal.storeHistoricalPriceData();
+    }
+  }
+}
+setupTerminalTradingPlan = profiler.registerFN(setupTerminalTradingPlan, 'setupTerminalTradingPlan');
+
 module.exports = {
   bodyCost: function(body) {
     return _.reduce(body, (memo,bodyPart) => memo + Number.parseInt(BODYPART_COST[bodyPart]), 0);
   },
-
-  setupMiningFlags: setupMiningFlags,
-  
-  calculateHaulingEconomy: require('utilities.calculateHaulingEconomy'),
-  
+  setupMiningFlags: setupMiningFlags,  
+  calculateHaulingEconomy: require('utilities.calculateHaulingEconomy'),  
   getVisualDirection: getVisualDirection,
-
   pruneMemory: pruneMemory,
-
   initializeRoomMemory: initializeRoomMemory,
-
   initializeMyRoomMemory: initializeMyRoomMemory,
-
   calculateDefense: calculateDefense,
-
   calculateDefendersRequired: calculateDefendersRequired,
-
-  generateBuildQueue: generateBuildQueue
+  generateBuildQueue: generateBuildQueue,
+  initGameState: initGameState,
+  generateUpgradeSweetSpots: generateUpgradeSweetSpots,
+  setupTerminalTradingPlan: setupTerminalTradingPlan
 };

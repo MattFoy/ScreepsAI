@@ -13,7 +13,6 @@ let roleBuilder = {
 
   /** @param {Creep} creep **/
   run: profiler.registerFN(function(creep) {
-    if (Game.time % 3 === 1) { return; }
     let task = "";
 
     if (!creep.memory.replaceBefore) {
@@ -35,143 +34,36 @@ let roleBuilder = {
       creep.memory.building = true;
     }
 
-    
+
     if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 5000) {
-      creep.memory.buildOrRepairId = null;          
+      // abort! abort!
     }
+
     if(creep.memory.building) {
       // Find something to either repair or build
-      if (!creep.memory.buildOrRepairId) {
-        // check for any repair targets (structures less than half health)
-        let targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
-          filter: (structure) => (structure.structureType === STRUCTURE_EXTENSION)
-        });
-        if (targets.length > 0) {
-          let target = creep.pos.findClosestByPath(targets);
-          if (target) { creep.memory.buildOrRepairId = target.id; }
-        } else {
-          targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
-            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER 
-              || structure.structureType === STRUCTURE_STORAGE)
-          });
-
-          if (targets.length > 0) {
-            creep.memory.buildOrRepairId = creep.pos.findClosestByRange(targets).id;
-          }
-        }
-
-        if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 5000) {
-          creep.memory.buildOrRepairId = null;          
-        }
-
-        if (!creep.memory.buildOrRepairId && Game.time % 10 === 7) {
-
-          let targets = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => (
-              ((structure.structureType != STRUCTURE_WALL 
-                && structure.structureType != STRUCTURE_RAMPART
-                && structure.hits < (structure.hitsMax * 0.4))
-                || 
-                ((structure.structureType == STRUCTURE_WALL
-                || structure.structureType == STRUCTURE_RAMPART)
-                && structure.hits < 200000 
-                && structure.hits > 0 
-                && creep.room.controller.level >= 4))
-            )
-          });
-          targets = _.filter(targets, function(t) {
-            let x = _.filter(Game.creeps, (c) => c.memory.buildOrRepairId === t.id && c.id !== creep.id);
-            //console.log(JSON.stringify(x));
-            return (x.length < 1) 
-          });
-
-          if (targets.length > 0) {
-            let closestDamagedStructure = creep.pos.findClosestByPath(targets);
-            if (closestDamagedStructure) {
-              creep.memory.buildOrRepairId = closestDamagedStructure.id;
-            }
-          }
+      if (!creep.memory.buildOrRepair) {
+        if (Memory.empire && Memory.empire.buildQueues 
+          && Memory.empire.buildQueues[creep.memory.origin] && Memory.empire.buildQueues[creep.memory.origin].length > 0) {
           
-          if (!creep.memory.buildOrRepairId) {          
-            let targets = [];
-            for (let i = 0; i < Game.rooms[creep.memory.origin].memory.responsibleForRooms.length; i++) {
-              let roomName = Game.rooms[creep.memory.origin].memory.responsibleForRooms[i];
-              let considerRoom = Game.rooms[roomName];
-              if (considerRoom) {
-                targets = considerRoom.find(FIND_STRUCTURES, {
-                  filter: (structure) => (
-                    ((structure.structureType != STRUCTURE_WALL 
-                    && structure.structureType != STRUCTURE_RAMPART
-                    && structure.hits < (structure.hitsMax * 0.4))
-                    || 
-                    ((structure.structureType == STRUCTURE_WALL
-                    || structure.structureType == STRUCTURE_RAMPART)
-                    && structure.hits < 200000 
-                    && structure.hits > 0 
-                    && creep.room.controller.level >= 4))
-                  )
-                });
-                targets = _.filter(targets, function(t) {
-                  let x = _.filter(Game.creeps, (c) => c.memory.buildOrRepairId === t.id && c.id !== creep.id);
-                  return (x.length < 1) 
-                });
-                if (targets.length > 0) {
-                  //console.log("Repairing: " + targets[0])
-                  creep.memory.buildOrRepairId = targets[0].id;
-                  break;
-                }
+          if (!Memory.empire.buildQueueAssignments) {
+            Memory.empire.buildQueueAssignments = {};
+          }
 
-              } else {
-                //console.log("Lost vision on " + roomName);
-              }
-            }
-
-            if (!creep.memory.buildOrRepairId) {
-
-              // try finding some local blueprints
-              let targets = creep.room.find(FIND_CONSTRUCTION_SITES);        
-              //targets = _.filter(targets, function(t) {
-              //  let x = _.filter(Game.creeps, (c) => c.memory.buildOrRepairId === t.id && c.id !== creep.id);
-              //  return (x.length < 1) 
-              //});
-              if(targets.length) {
-                //let target = Game.rooms[creep.memory.origin].controller.pos.findClosestByPath(targets);
-                let target = creep.pos.findClosestByPath(targets);
-                if (target) {
-                  creep.memory.buildOrRepairId = target.id;
-                }
-              }
-
-              if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 5000) {
-                creep.memory.buildOrRepairId = null;          
-              }
-              
-              if (!creep.memory.buildOrRepairId) {
-                // check for foreign build sites then
-                let targets = _.filter(Game.constructionSites,
-                  (cs) => (Game.rooms[creep.memory.origin].memory.responsibleForRooms.indexOf(cs.pos.roomName) >= 0));
-
-                targets = _.filter(targets, function(t) {
-                  let x = _.filter(Game.creeps, (c) => c.memory.buildOrRepairId === t.id && c.id !== creep.id);
-                  return (x.length < 1) 
-                });
-                 
-                for (let i in targets) {
-                  //console.log('Creep: ' + creep.name + ', site: ' + targets[i] + ', room: ' + targets[i].pos.roomName);
-                }
-                
-                if (targets.length > 0) {
-                  creep.memory.buildOrRepairId = targets[0].id;
-                }
-              }
+          for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {            
+            if (!Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] 
+              && !Memory.empire.buildQueues[creep.memory.origin][i].assigned) {
+              creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][i];
+              Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
+              Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
+              break;
             }
           }
         }
       }
       
-      if (creep.memory.buildOrRepairId) {
+      if (creep.memory.buildOrRepair) {
         task = "W";
-        let target = Game.getObjectById(creep.memory.buildOrRepairId);
+        let target = Game.getObjectById(creep.memory.buildOrRepair.id);
         if (target) {
           if (!target.room) { 
             creep.travelTo({x: 25, y: 25, roomName: target.pos.roomName});
@@ -189,14 +81,8 @@ let roleBuilder = {
               if(creep.repair(target) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(target, { range: 3 });
               }
-              // clear repair order if over 90% durability
-              if ((target.structureType != STRUCTURE_WALL
-                && target.structureType != STRUCTURE_RAMPART
-                && target.hits > (target.hitsMax - REPAIR_POWER))
-                || 
-                ((target.structureType == STRUCTURE_WALL || target.structureType == STRUCTURE_RAMPART))
-                && (creep.room.controller.level < 4 || target.hits >= 200000)) {
-                creep.memory.buildOrRepairId = null;
+              if (target.hits >= target.hitsMax || target.hits >= creep.memory.buildOrRepair.amountTotal) {
+                creep.memory.buildOrRepair = null;
               }
             }
 
@@ -211,7 +97,8 @@ let roleBuilder = {
             }
           } 
         } else {
-          creep.memory.buildOrRepairId = null;
+          creep.memory.buildOrRepair = null;
+          task += '-X';
         }
       } else {
         if (creep.room.name !== creep.memory.origin) {
@@ -222,7 +109,7 @@ let roleBuilder = {
             task = "Ref";
           } else {
             creep.goUpgrade();
-            task = "Upgr";  
+            task = "U";  
           }          
         }
       }
@@ -234,7 +121,7 @@ let roleBuilder = {
   }, 'run:builder'),
 
   determineBodyParts: function(room) {
-    let maxEnergy = Math.min(room.energyCapacityAvailable, 1800);
+    let maxEnergy = Math.min(room.energyCapacityAvailable, 2000);
     
     var segment = [WORK,CARRY,MOVE];
     var body = [];

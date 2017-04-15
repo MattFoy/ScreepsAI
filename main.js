@@ -18,13 +18,7 @@
   * recheck squad periodically
    respawn missing squaddies? Or wait until all gone then reform from scratch?
    depends on the tactic, I suppose?
-  * create a wall buster / economy drainer tactic
-    - medic + dismantler / attacker
-      - medic stays out of room and heals
-      - dismantler walks in, walks out to get healed when under 75% hp
 
---- CPU issues:
-  * fix builder logic, queue up work items once per tick, not once per builder...
 */
 
 const profiler = require('screeps-profiler');
@@ -37,138 +31,11 @@ const squads = require('squads');
 const traveler = require('traveler');
 
 const resources = require('resources');
-//profiler.enable();
+
+profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
-  global.GameState = {};
-  GameState.username = _.sample(Game.structures).owner.username;
-  GameState.verbose = true;
-  GameState.constants = {
-    MEMORY_CRITICAL: 0,
-    MEMORY_ECONOMIC_TRENDS: 1,
-    MEMORY_STATS: 2,
-    CARTOGRAPHY: 3
-  };
-  GameState.memory = {};
-  GameState.allies = ['Drethin', 'NickelBomber'];
-  GameState.cpuUsedToLoad = Game.cpu.getUsed();
-  
-  //console.log(GameState.cpuUsedToLoad);
-
-  RawMemory.setActiveSegments([
-    GameState.constants.MEMORY_CRITICAL, 
-    GameState.constants.MEMORY_ECONOMIC_TRENDS,
-    GameState.constants.MEMORY_STATS,
-    GameState.constants.CARTOGRAPHY
-  ]);
-
-  for (var i in GameState.constants) {
-    if (RawMemory.segments[GameState.constants[i]]) {
-      GameState.memory[GameState.constants[i]] = JSON.parse(RawMemory.segments[GameState.constants[i]]);
-    } else {
-      GameState.memory[GameState.constants[i]] = {};
-    }
-  }
-
-  if (!GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms) {
-    GameState.memory[GameState.constants.MEMORY_ECONOMIC_TRENDS].rooms = {};
-  }
-
-  if (!GameState.memory[GameState.constants.CARTOGRAPHY].costMatrices) {
-    GameState.memory[GameState.constants.CARTOGRAPHY].costMatrices = {};
-  }
-
-  if (!GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration) {
-    GameState.memory[GameState.constants.CARTOGRAPHY].costMatricesExpiration = {};
-  }
-
-  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].rooms) {
-    GameState.memory[GameState.constants.MEMORY_CRITICAL].rooms = {};
-  }
-
-  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads) {
-    GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads = {};
-  }
-  
-  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
-    GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads = {};
-  }
-
-  for (var name in Game.flags) {
-    let match = /ATTACK_(.*)/.exec(name);
-    if (match) {
-      let attackId = match[1];
-      if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId]) {
-        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId] = {};
-      }
-
-      let flag = Game.flags[name];
-
-      if (flag.memory.launch && flag.memory.tactic && !flag.memory.initialized) {
-        if (flag.memory.tactic) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].rallyPoint = {
-            x: flag.pos.x,
-            y: flag.pos.y,
-            roomName: flag.pos.roomName
-          };
-
-          ['tactic', 'target', 'medicTent', 'regroup'].forEach(function(name) {
-            if (flag.memory[name]) {
-              GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId][name] = flag.memory[name];
-            }
-          })
-
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].squad = 
-            _.map(squads.templates[flag.memory.tactic], function(s){ return { name: null, position: s.position, body: s.body } });
-        }
-
-        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].status = 'forming';
-        flag.memory.initialized = true;
-      }
-    }
-  }
-
-  for (var name in GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
-    if (!Game.flags['ATTACK_' + name]) {
-      delete GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name];
-    } else {
-      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'forming') {
-        let formed = true;
-        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
-          if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name) {
-            formed = false;
-            break;
-          }
-        }
-
-        if (formed) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'rallying'
-        }
-      }
-
-      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'rallying') {
-        let rallied = true;
-        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
-          let creep = Game.creeps[GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name];
-          if (!creep) {
-            console.log("Error, creep doesnt exist?")
-          } else {
-            if ((creep.room.name !== GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.roomName)
-              || (creep.pos.getRangeTo(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.x, GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.y) > 4)) {
-              rallied = false;
-              break;
-            } 
-          }
-        }
-
-        if (rallied) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'ready'
-        }
-      }      
-    }
-  }
-
-
+  utilities.initGameState();
   utilities.pruneMemory();
 
   console.log(' ============================== Tick# ' + Game.time 
@@ -177,27 +44,35 @@ module.exports.loop = function () { profiler.wrap(function() {
   
   modules.processCreeps();
 
-  for(let roomName in Game.rooms) {
-    if (Game.cpu.bucket < 9000 && Game.time % 3 === 0) {
-      break;
-    }
+  if (Game.time % 15 === 1) {
+    console.log("Generating build queue");
+    Memory.empire.buildQueues = {};
+  }
 
-    let room = Game.rooms[roomName];    
+  for(let roomName in Game.rooms) {
+    // skip every third tick when we're low on CPU...
+    if (Game.cpu.bucket < 9000 && Game.time % 3 === 0) { break; }
+
+    let room = Game.rooms[roomName];
     utilities.initializeRoomMemory(room);
+    
+    if (Game.time % 15 === 1) {
+      utilities.generateBuildQueue(room);
+    }
 
     // Process my rooms
     if (room.controller && room.controller.my) {
       utilities.initializeMyRoomMemory(room);
-
-      utilities.setupMiningFlags(roomName);
-      
+      if (!room.memory.miningFlagsInitialized) {
+        utilities.setupMiningFlags(roomName);
+      }      
       utilities.calculateHaulingEconomy(room);
-
       if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
       }
-      if (Game.time % 3 === 1) {
-        utilities.generateBuildQueue(room);
+      if (Game.time % 33 === 13) {
+        console.log("Generating upgrade sweet spots");
+        utilities.generateUpgradeSweetSpots(room);
       }
 
       //console.log(Game.cpu.getUsed());
@@ -208,44 +83,17 @@ module.exports.loop = function () { profiler.wrap(function() {
       modules.processLabs(room);
       //console.log(Game.cpu.getUsed());
 
-      if (Game.time % 3 === 1) {
+      if (Game.time % 5 === 2) {
         modules.processSpawning(room);
         //console.log(Game.cpu.getUsed());
       }
-
       if (Game.time % 6 === 2) {
-        if (room.storage && room.terminal) {
-          room.memory.tradingPlan = {};
-          room.memory.tradingPlan.resourceQuantities = {};
-
-          for (var resourceIdx in RESOURCES_ALL) {
-            let resource = RESOURCES_ALL[resourceIdx];
-            let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0);
-            let terminalAmount = 0;
-            if (room.terminal.store[resource]) {
-              terminalAmount = room.terminal.store[resource];
-            }
-            room.memory.tradingPlan.resourceQuantities[resource] = Math.min(qtyAvailable, Math.min(100000, Math.max(5000, (terminalAmount + qtyAvailable) - 100000)));
-          }
-          room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
-          if (room.storage && room.storage.store[RESOURCE_ENERGY] > 500000) {
-            room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = 100000;
-          }
-
-          //console.log(room.name + ': ' + Game.cpu.getUsed());
-          if (room.terminal && Game.time % 100 === 37) {
-            // do market stuff
-            // todo...
-            //room.terminal.storeHistoricalPriceData();
-          }
-        }
+        utilities.setupTerminalTradingPlan(room);
       }
-
     } else {
       //console.log(roomName + " isn't mine.");
     }
   }
-
 
   for (var i in GameState.constants) {
     if (GameState.memory[GameState.constants[i]]) {
@@ -285,6 +133,5 @@ module.exports.loop = function () { profiler.wrap(function() {
       };
     })(); // collect_stats
   }
-
   require('commandLineUtilities')();
 });}

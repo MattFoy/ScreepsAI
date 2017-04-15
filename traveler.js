@@ -1,7 +1,7 @@
 require('prototypes.room')();
 
 "use strict";
-const REPORT_CPU_THRESHOLD = 50;
+const REPORT_CPU_THRESHOLD = 100;
 const DEFAULT_MAXOPS = 20000;
 const DEFAULT_STUCK_VALUE = 4;
 const DEFAULT_STUCK_PATH_DURATION = 8;
@@ -232,7 +232,7 @@ class Traveler {
             travelData.count++;
             if (travelData.cpu > REPORT_CPU_THRESHOLD) {
                 console.log(`TRAVELER: heavy cpu use: ${creep.name}, cpu: ${_.round(travelData.cpu, 2)},\n` +
-                    `origin: ${creep.pos}, dest: ${destination}`);
+                    `origin: ${creep.pos}, dest: ${destination}, role: ${creep.memory.role}`);
             }
             if (ret.incomplete) {
                 console.log(`TRAVELER: incomplete path for ${creep.name}`);

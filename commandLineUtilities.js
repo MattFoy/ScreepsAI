@@ -195,7 +195,12 @@ module.exports = function() {
 		for (var i = 0; i < Math.min(5, Memory.empire.buildQueues[roomName].length); i++) {
 			let det = Memory.empire.buildQueues[roomName][i];
 			console.log(i + ": " + det.type + ' ' + det.structureType + ' at ' + JSON.stringify(det.pos));
-			console.log(' `--> (' + det.amount + ' / ' + det.amountTotal + ')');
+			console.log(' `--> (' + det.amount + ' / ' + det.amountTotal + ') Assigned: ' 
+				+ (Memory.empire.buildQueueAssignments[det.id] 
+					? Memory.empire.buildQueueAssignments[det.id] 
+					: ' (none)'
+				)
+			);
 		}
 	}
 }

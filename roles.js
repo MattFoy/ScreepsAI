@@ -1,24 +1,5 @@
 var roles = {}
 
-roles.spawnPriority = [
-  'remoteDefender',
-  'bellhop',
-  'scout',
-  'mineralExtractor',
-  'labourer',
-  'roomReserver',
-  'roomClaimer',
-  'miner',
-  'upgrader',
-  'builder',
-  'smartHauler',
-  'squaddie',
-  'skGuard',
-  'medicSentry',
-  'skSentry',
-  'trucker'
-];
-
 roles['remoteDefender'] = require('roles.remoteDefender');
 
 // The schleppers
@@ -46,6 +27,8 @@ roles['skGuard'] = require('roles.skGuard');
 roles['medicSentry'] = require('roles.medicSentry');
 roles['rangedSentry'] = require('roles.rangedSentry');
 roles['skSentry'] = require('roles.skSentry');
+
+roles['chemist'] = require('roles.chemist');
 
 roles['suicide'] = require('roles.suicide');
 

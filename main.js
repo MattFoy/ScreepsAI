@@ -80,8 +80,11 @@ module.exports.loop = function () { profiler.wrap(function() {
       //console.log(Game.cpu.getUsed());
       modules.processLinks(room);
       //console.log(Game.cpu.getUsed());
-      modules.processLabs(room);
-      //console.log(Game.cpu.getUsed());
+
+      if (Game.time % 10 === 7) {
+        modules.processLabs(room);
+        //console.log(Game.cpu.getUsed());
+      }
 
       if (Game.time % 5 === 2) {
         modules.processSpawning(room);

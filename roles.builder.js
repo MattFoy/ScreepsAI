@@ -121,7 +121,7 @@ let roleBuilder = {
   }, 'run:builder'),
 
   determineBodyParts: function(room) {
-    let maxEnergy = Math.min(room.energyCapacityAvailable, 2000);
+    let maxEnergy = Math.min(room.energyCapacityAvailable, 2200);
     
     var segment = [WORK,CARRY,MOVE];
     var body = [];

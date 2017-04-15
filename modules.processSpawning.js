@@ -11,7 +11,7 @@ function processSpawning(room) {
   var spawnQueue = [];
 
   let r = 1;
-  roles.spawnPriority.forEach(function (roleName) {
+  for (let roleName in roles) {
     if (roles[roleName].spawnType === 'global') {
       if (roles[roleName].spawnCondition(room)) {
         spawnQueue.push(roles[roleName].determineSpawnParams(room));
@@ -45,7 +45,8 @@ function processSpawning(room) {
     if (rolesInRoom[roleName]) {
       count = rolesInRoom[roleName].length;
     }
-  });
+  }
+  
   spawnQueue.sort((a,b) => (roles[a.memory.role].determinePriority ? roles[a.memory.role].determinePriority(room, rolesInRoom) : 100)
           - (roles[b.memory.role].determinePriority ? roles[b.memory.role].determinePriority(room, rolesInRoom) : 100));
   

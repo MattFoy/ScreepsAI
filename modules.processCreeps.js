@@ -8,7 +8,9 @@ function processCreeps() {
     let creep = Game.creeps[name];
 
     if (!hostilesInRoom[creep.room.name]) {
-      let hostiles = creep.room.find(FIND_HOSTILE_CREEPS);
+      let hostiles = creep.room.find(FIND_HOSTILE_CREEPS, { filter: 
+        (c) => c.getActiveBodyparts(ATTACK) > 0 
+          || c.getActiveBodyparts(RANGED_ATTACK) > 0 });
       let skLairs = creep.room.find(FIND_STRUCTURES, { filter: (s) => 
         s.structureType === STRUCTURE_KEEPER_LAIR && s.ticksToSpawn < 10 });
       hostilesInRoom[creep.room.name] = hostiles.concat(skLairs);

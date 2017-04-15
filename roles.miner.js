@@ -58,7 +58,8 @@ let roleMiner = {
           let repairTargets = creep.pos.findInRange(FIND_STRUCTURES, 3, {
             filter: function(structure) {
               return structure.hits < structure.hitsMax
-                && structure.hitsMax - structure.hits > REPAIR_POWER;
+                && structure.hitsMax - structure.hits > REPAIR_POWER
+                && structure.hits < 1e+6;
             }
           });
           repairTargets.sort(function (a,b) {return (a.hits - b.hits)});

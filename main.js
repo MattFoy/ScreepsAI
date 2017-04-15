@@ -1,6 +1,12 @@
 /*
 
-5. Auto-calc no. of necessary builders
+TODO:
+* Set up link miners 
+  - reduce hauling required
+  - modify builder body parts accordingly
+
+* Auto-calc no. of necessary builders/repairers based on queue
+  - need to determine builder work part effective time
 
 6. Make haulers prioritize (slightly) things that are closer to them
   * i.e. 5000 energy within 20 ticks is probably more valuable that 6000 90 away.
@@ -27,7 +33,6 @@ require('prototypes')();
 const modules = require('modules');
 const utilities = require('utilities');
 const roles = require('roles');
-const squads = require('squads');
 const traveler = require('traveler');
 
 const resources = require('resources');
@@ -37,6 +42,8 @@ profiler.enable();
 module.exports.loop = function () { profiler.wrap(function() {
   utilities.initGameState();
   utilities.pruneMemory();
+
+  modules.processSquads();
 
   console.log(' ============================== Tick# ' + Game.time 
     + ', CPU: ' + Game.cpu.limit + ', ' + Game.cpu.tickLimit + ', ' + Game.cpu.bucket 
@@ -70,7 +77,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
       }
-      if (Game.time % 33 === 13) {
+      if (Game.time % 173 === 13) {
         console.log("Generating upgrade sweet spots");
         utilities.generateUpgradeSweetSpots(room);
       }

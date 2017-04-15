@@ -66,6 +66,10 @@ module.exports = {
 		{ position: 'simpleSaboteur', body: [WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE] },
 		{ position: 'simpleSaboteur', body: [WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE] }
 	],
+
+	wallCleaner: [
+		{ position: 'simpleSaboteur', body: [WORK, MOVE] }
+	],
 	
 	test: [
 		{ position: 'decoy', body: [MOVE] }

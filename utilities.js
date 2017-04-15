@@ -4,44 +4,30 @@ function setupMiningFlags(roomName) {
   let room = Game.rooms[roomName];
   if (!room) { return; }
   if (room.memory.miningFlagsInitialized) { return; }
-
-  if (!room.memory.roleReservables) {
-    room.memory.roleReservables = {};
-  }
-  
-  if (!room.memory.roleReservables['miner']) {
-    room.memory.roleReservables['miner'] = [];
-  }
-  
-  if (room.memory.roleReservables['miner'].length <= room.find(FIND_SOURCES).length && _.filter(Game.creeps, (c) => c.ticksToLive !== undefined).length > 0) {
-    if (room.energyCapacityAvailable < 450) { return; }
-    
+  if (!room.memory.roleReservables) { room.memory.roleReservables = {}; }  
+  if (!room.memory.roleReservables['miner']) { room.memory.roleReservables['miner'] = []; }  
+  if (room.memory.roleReservables['miner'].length <= room.find(FIND_SOURCES).length 
+    && _.filter(Game.creeps, (c) => c.ticksToLive !== undefined).length > 0) {
+    if (room.energyCapacityAvailable < 550) { return; }    
     var sources = room.find(FIND_SOURCES);
     for(var i = 0; i < sources.length; i++) {
       var src = sources[i];
       var target = src.pos.findClosestByPath(FIND_MY_SPAWNS, { ignoreCreeps: true });
-      if (!target) {
-        target = room.controller;
-      }
-      //console.log(spawn);
+      if (!target) { return; }
       if (target) {
         var pathToTarget = src.pos.findPathTo(target, { ignoreCreeps: true });      
         var flagPos = pathToTarget[0];
         var flagName = 'mining_' + roomName + '_' + src.id.slice(-4);
-        var flagResult = room.createFlag(flagPos.x, flagPos.y, flagName)
-
+        var flagResult = room.createFlag(flagPos.x, flagPos.y, flagName);
         room.createConstructionSite(flagPos.x, flagPos.y, STRUCTURE_CONTAINER);
         Game.flags[flagName].memory.sourceId = src.id;
-        Game.flags[flagName].memory.distanceToTarget = pathToTarget.length;  
-        
+        Game.flags[flagName].memory.distanceToTarget = pathToTarget.length;        
         for (var j = pathToTarget.length - 8; j > 0; j--) {
           room.createConstructionSite(pathToTarget[j].x, pathToTarget[j].y, STRUCTURE_ROAD);
         }
-
         room.memory.roleReservables['miner'].push(flagName);
       }
     }
-
     room.memory.roleReservables['miner'] = _.uniq(room.memory.roleReservables['miner']);
     room.memory.miningFlagsInitialized = true;
   }
@@ -532,80 +518,6 @@ function initGameState() {
   
   if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
     GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads = {};
-  }
-
-  for (var name in Game.flags) {
-    let match = /ATTACK_(.*)/.exec(name);
-    if (match) {
-      let attackId = match[1];
-      if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId]) {
-        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId] = {};
-      }
-
-      let flag = Game.flags[name];
-
-      if (flag.memory.launch && flag.memory.tactic && !flag.memory.initialized) {
-        if (flag.memory.tactic) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].rallyPoint = {
-            x: flag.pos.x,
-            y: flag.pos.y,
-            roomName: flag.pos.roomName
-          };
-
-          ['tactic', 'target', 'medicTent', 'regroup'].forEach(function(name) {
-            if (flag.memory[name]) {
-              GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId][name] = flag.memory[name];
-            }
-          })
-
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].squad = 
-            _.map(squads.templates[flag.memory.tactic], function(s){ return { name: null, position: s.position, body: s.body } });
-        }
-
-        GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].status = 'forming';
-        flag.memory.initialized = true;
-      }
-    }
-  }
-
-  for (var name in GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
-    if (!Game.flags['ATTACK_' + name]) {
-      delete GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name];
-    } else {
-      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'forming') {
-        let formed = true;
-        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
-          if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name) {
-            formed = false;
-            break;
-          }
-        }
-
-        if (formed) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'rallying'
-        }
-      }
-
-      if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status === 'rallying') {
-        let rallied = true;
-        for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
-          let creep = Game.creeps[GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name];
-          if (!creep) {
-            console.log("Error, creep doesnt exist?")
-          } else {
-            if ((creep.room.name !== GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.roomName)
-              || (creep.pos.getRangeTo(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.x, GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].rallyPoint.y) > 4)) {
-              rallied = false;
-              break;
-            } 
-          }
-        }
-
-        if (rallied) {
-          GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].status = 'ready'
-        }
-      }      
-    }
   }
 }
 initGameState = profiler.registerFN(initGameState, 'initGameState');

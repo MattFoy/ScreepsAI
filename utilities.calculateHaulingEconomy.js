@@ -56,7 +56,7 @@ module.exports = function(room) {
 
     let carryRequired = energyPerTick * room.memory.energySourceFlags_details[flag.name].pathCost * 2;
 
-    if (room.controller.level >= 7) {
+    if (room.controller.level >= 8) {
       carryRequired *= 0.9;
     }
 

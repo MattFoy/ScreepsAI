@@ -27,7 +27,7 @@ let processSquads = function() {
           })
 
           GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].squad = 
-            _.map(squads.templates[flag.memory.tactic], function(s){ return { name: null, position: s.position, body: s.body } });
+            _.map(squads.templates[flag.memory.tactic], function(s){ return { name: null, position: s.position, boosts: s.boosts, body: s.body } });
         }
 
         GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[attackId].status = 'forming';

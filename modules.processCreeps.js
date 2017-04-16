@@ -1,4 +1,5 @@
 let roles = require('roles');
+require('prototypes')();
 const profiler = require('screeps-profiler');
 
 function processCreeps() {
@@ -65,7 +66,33 @@ function processCreeps() {
             }
           }
           if (!fleeing) {
-            roles[creep.memory.role].run(creep);
+            if (creep.memory.boosts && creep.memory.boosts.length > 0 && !creep.memory.isBoosted) {
+              let isBoosted = true;
+              for (let bodyType in creep.memory.boosts) {
+                if (!creep.isBoosted(bodyType)) {
+                  if (Game.rooms[creep.memory.origin].memory.science 
+                    && Game.rooms[creep.memory.origin].memory.science.boosts
+                    && Game.rooms[creep.memory.origin].memory.science.boosts[bodyType]) {
+                    let lab = Game.getObjectById(Game.rooms[creep.memory.origin].memory.science.boosts[bodyType]);
+                    if (lab) {
+                      isBoosted = false;
+                      if (lab.boostCreep(creep) === ERR_NOT_IN_RANGE) {
+                        creep.travelTo(lab);
+                      }
+                      break;
+                    }
+                  }
+                } else {
+                  continue;
+                }
+              }
+              if (isBoosted) {
+                creep.memory.isBoosted;
+              }
+            } else {
+              roles[creep.memory.role].run(creep);
+            }
+
             if (roles[creep.memory.role].recycleOnWound && creep.hits < (creep.hitsMax - 99)) {
               creep.memory.previousRole = creep.memory.role;
               creep.memory.reason = 'wounded';
@@ -83,7 +110,8 @@ function processCreeps() {
       }
     } catch (e) {
       console.log("A creep threw an exception: " + name);
-      console.log(JSON.stringify(e));
+      console.log(e);
+      throw e;
     }
   }
 }

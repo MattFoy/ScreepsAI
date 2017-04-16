@@ -15,12 +15,26 @@ let roleChemist = {
 
     if (creep.room.name !== creep.memory.origin) {
       creep.memory.returnToOrigin = true;
-    } else {
-      if (!creep.memory.chemistry.task || creep.memory.chemistry.task === 'idle') {
+    } else {      
+      if (creep.memory.sleepUntil && creep.memory.sleepUntil - Game.time >= 0) {
+        creep.say('Zzz');
+        creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 1); 
+        return;
+      } else {
+        delete creep.memory.sleepUntil;
+      }
+
+      if (creep.memory.chemistry && (!creep.memory.chemistry.tick || Game.time - creep.memory.chemistry.tick > 30)) {
+        delete creep.memory.chemistry;
+      }
+
+      if (!creep.memory.chemistry || !creep.memory.chemistry.task || creep.memory.chemistry.task === 'idle') {
         getChemistTask(creep);
       }
 
       runChemistTask(creep);
+
+      creep.say('chem');
     }    
   }, 'run:chemist'),
 
@@ -34,11 +48,9 @@ let roleChemist = {
   },
 
   getQuota: function(room) {
-    return 0;
-
-    return ((creep.room.memory.science 
-      && ((creep.room.memory.science.inputLabs && creep.room.memory.science.inputLabs.length > 0)
-        || (creep.room.memory.science.boosts)))
+    return ((room.memory.science 
+      && ((room.memory.science.inputLabs && room.memory.science.inputLabs.length > 0)
+        || (room.memory.science.boosts)))
       ? 1 
       : 0);
   },
@@ -60,8 +72,12 @@ let roleChemist = {
 // 9. Keep output labs under half resources
 // 10. Load up the Nuker
 function getChemistTask(creep) {
+  console.log("[Chemist " + creep.name + '] getting task');
   if (creep.room.memory.science) {
-    if (!creep.memory.chemistry) { creep.memory.chemistry = {}; }
+    if (!creep.memory.chemistry) { 
+      creep.memory.chemistry = {}; 
+      creep.memory.chemistry.tick = Game.time;
+    }
     if (creep.room.memory.science.boosts) {
       // 1. Keep boost labs filled with energy (at least half full)
       for(let bodyPart in creep.room.memory.science.boosts) {
@@ -118,14 +134,26 @@ function getChemistTask(creep) {
             mineralsAvailable += creep.room.terminal.store[creep.room.memory.science.boostMinerals[bodyPart]]
           }
           let mineralsRequired = Math.min(creep.carryCapacity, lab.mineralCapacity - lab.mineralAmount);
-          if (lab.mineralAmount && lab.mineralAmount < (lab.mineralCapacity / 2)
-            && (!lab.mineralType || lab.mineralType === creep.room.memory.science.boostMinerals[bodyPart])
-            && mineralsAvailable >= mineralsRequired) {
-            creep.memory.chemistry.targetLabId = lab.id;
-            creep.memory.chemistry.task = 'load';
-            creep.memory.chemistry.mineralType = creep.room.memory.science.boostMinerals[bodyPart];
-            creep.memory.chemistry.amount = mineralsRequired;
-            return;
+          if ((lab.mineralAmount === 0 || lab.mineralAmount && lab.mineralAmount < (lab.mineralCapacity / 2))
+            && (!lab.mineralType || lab.mineralType === creep.room.memory.science.boostMinerals[bodyPart])) {
+            if (mineralsAvailable >= mineralsRequired) {
+              creep.memory.chemistry.targetLabId = lab.id;
+              creep.memory.chemistry.task = 'load';
+              creep.memory.chemistry.mineralType = creep.room.memory.science.boostMinerals[bodyPart];
+              creep.memory.chemistry.amount = mineralsRequired;
+              return;
+            } else if (mineralsAvailable < mineralsRequired) {
+              // need to buy more!
+              let amount = (mineralsRequired - mineralsAvailable);
+              let resType = creep.room.memory.science.boostMinerals[bodyPart];
+              console.log('Gotta buy ' + amount + ' more ' + resType + ' in ' + creep.room.name);
+              if (creep.room.terminal) {
+                //creep.room.terminal.getBestOrders(ORDER_SELL, resType);
+                if (Game.cpu.bucket > 5000) {
+                  creep.room.terminal.buy(resType, amount);
+                }
+              }
+            }
           }
         }
       }
@@ -191,13 +219,13 @@ function getChemistTask(creep) {
         return (structure.structureType === STRUCTURE_LAB)
       } 
     }).forEach(function(lab) {
-      if (room.memory.science.boosts) {
-        if (_.filter(room.memory.science.boosts, (id) => id === lab.id).length > 0) {
+      if (creep.room.memory.science.boosts) {
+        if (_.filter(creep.room.memory.science.boosts, (id) => id === lab.id).length > 0) {
           // B
           return;
         }
       }
-      if (room.memory.science.inputLabs.indexOf(lab.id) > -1) {
+      if (creep.room.memory.science.inputLabs.indexOf(lab.id) > -1) {
         // I
       } else { 
         // O
@@ -220,6 +248,7 @@ function getChemistTask(creep) {
 
   // else...
   creep.memory.chemistry.task = 'idle';
+  creep.memory.sleepUntil = Game.time + 17;
   return;
 }
 
@@ -233,10 +262,19 @@ function runChemistTask(creep) {
     delete creep.memory.chemistry;
   }
   // clear task details if lab is missing
-  let lab = Game.getObjectById(creep.memory.chemistry.targetLabId);
-  if (!lab) { delete creep.memory.chemistry; }
+  let lab = null;
+  if (creep.memory.chemistry && creep.memory.chemistry.targetLabId) {
+    lab = Game.getObjectById(creep.memory.chemistry.targetLabId);
+  }
+  if (!lab) {
+    if (creep.memory.chemistry) {
+      console.log(JSON.stringify(creep.memory.chemistry));
+    }
+    delete creep.memory.chemistry; 
+  }
 
   if (creep.memory.chemistry && creep.memory.chemistry.task && creep.memory.chemistry.task === 'load') {
+    delete creep.memory.carrying;
     if (creep.memory.chemistry.amount > creep.carryCapacity) {
       creep.memory.chemistry.amount = creep.carryCapacity;
     }
@@ -261,19 +299,56 @@ function runChemistTask(creep) {
     }
 
     if (creep.memory.carryState === 'full') {
-
+      if (creep.transfer(lab, creep.memory.chemistry.mineralType) === ERR_NOT_IN_RANGE) {
+        creep.travelTo(lab);
+      } else {
+        delete creep.memory.chemistry;
+      }
     } else if (creep.memory.carryState === 'get') {
-
+      let storageAmount = creep.room.storage.store[creep.memory.chemistry.mineralType];
+      let terminalAmount = creep.room.terminal.store[creep.memory.chemistry.mineralType];
+      if (storageAmount > 0) {
+        let withdrawAmount = Math.min(creep.memory.chemistry.amount - (creep.carry[creep.memory.chemistry.mineralType] ? creep.carry[creep.memory.chemistry.mineralType] : 0), storageAmount);
+        if (creep.withdraw(creep.room.storage, creep.memory.chemistry.mineralType, withdrawAmount) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(creep.room.storage);
+        }  
+      } else if (terminalAmount > 0) {
+        let withdrawAmount = Math.min(creep.memory.chemistry.amount - (creep.carry[creep.memory.chemistry.mineralType] ? creep.carry[creep.memory.chemistry.mineralType] : 0), terminalAmount);
+        if (creep.withdraw(creep.room.terminal, creep.memory.chemistry.mineralType, withdrawAmount) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(creep.room.terminal);
+        }
+      }
     } else if (creep.memory.carryState === 'store') {
-
+      for (let res in creep.carry) {
+        if (creep.transfer(creep.room.storage, res) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(creep.room.storage);
+        }
+      }
+    }
+  } else if (creep.memory.chemistry && creep.memory.chemistry.task && creep.memory.chemistry.task === 'unload') {
+    delete creep.memory.carryState;
+    if (!creep.memory.carrying && _.sum(creep.carry) >= 0) {
+      creep.memory.carrying = true;
+    } else if (creep.memory.carrying && _.sum(creep.carry) === 0) {
+      creep.memory.carrying = false;
     }
 
-    return;
-  } else if (creep.memory.chemistry && creep.memory.chemistry.task && creep.memory.chemistry.task === 'load') {
-
-    return;
+    if (creep.memory.carrying) {
+      for (let res in creep.carry) {
+        if (creep.transfer(creep.room.storage, res) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(creep.room.storage);
+        }
+      }
+    } else {
+      if (creep.withdraw(lab, creep.memory.chemistry.mineralType) === ERR_NOT_IN_RANGE) {
+        creep.travelTo(lab);
+      } else {
+        delete creep.memory.chemistry;
+      }
+    }
   } else {
-    creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 2);    
+    creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 2);  
+    creep.say('idle');  
   }
 }
 

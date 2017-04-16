@@ -171,7 +171,15 @@ module.exports = {
 	decoy: {
 		run: function(creep) {
 			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
-			creep.suicide();
+			if (creep.room.name !== squad.target) {
+				if (Game.rooms[squad.target]) {
+					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
+				} else {
+					creep.travelTo({x: 25, y: 25, roomName: squad.target}, { allowHostile: true });
+				}
+			} else {
+				creep.moveTo(Game.rooms[squad.target].controller);
+			}
 		}
 	}
 };

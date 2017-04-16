@@ -55,6 +55,16 @@ module.exports = function() {
 
   }
 
+  Creep.prototype.isBoosted = function(part) {
+    for (var i = 0; i < this.body.length; i++) {
+      if ((!part || this.body[i].type === part)
+        && this.body[i].boost !== undefined) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Creep.prototype.goUpgrade = function() {
     if (this.room.name !== this.memory.origin) {
       this.memory.returnToOrigin = true;

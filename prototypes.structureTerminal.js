@@ -141,6 +141,16 @@ module.exports = function() {
     return sim_rate;
   }
 
+  StructureTerminal.prototype.buy = function(resourceType, amount) {
+    let orders = this.getBestOrders(ORDER_SELL, resourceType);
+    
+    for (var i = 0; i < 10; i++) {
+      if (orders[i].amount >= amount) {
+        console.log(Game.market.deal(orders[i].id, amount, this.room.name));
+        return;
+      }
+    }
+  }
 
   StructureTerminal.prototype.storeHistoricalPriceData = function() {
     let room = this.room;

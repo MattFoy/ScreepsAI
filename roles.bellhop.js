@@ -393,6 +393,8 @@ let roleBellhop = {
           if (creep.pickup(droppedEnergy[0]) === ERR_NOT_IN_RANGE) {
             creep.travelTo(droppedEnergy[0], { range: 1 });
           }
+        } else {
+          creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 1); 
         }        
       } 
     }

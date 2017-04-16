@@ -42,16 +42,25 @@ let roleSquaddie = {
     let squad = '';
     let body = [];
     let squadIdx = -1;
+    let boosts = [];
 
     for (var name in GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
+      if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad) { continue; }
       for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
         let bodyCost = utilities.bodyCost(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].body);
         if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name 
-          && room.energyCapacityAvailable >= bodyCost) {
+          && room.energyCapacityAvailable >= bodyCost
+          && (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts 
+            || (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts.length > 0
+              && room.memory.science && room.memory.science.boosts
+              && _.reduce(boosts, function(memo,bodypart) { 
+                return (memo && room.memory && room.memory.science && room.memory.science.boosts && room.memory.science.boosts[bodypart]) ? true : false; 
+              }, true))) ) {
           squad = name;
           body =  GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].body;
           squadIdx = i;
-          break;          
+          boosts = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts;
+          break;
         }
       }
     }
@@ -71,21 +80,34 @@ let roleSquaddie = {
 
     let callback = ((squadIdx > -1) ? saveCreepName(squad, squadIdx) : null);
 
-    return {
+    let ret = {
       memory: { origin: room.name, role: 'squaddie', squad: squad },
       body: body,
       spawnCallback: callback
     }
+
+    if (boosts && boosts.length > 0) {
+      ret.memory.boosts = boosts;
+    }
+
+    return ret;
   },
 
   spawnCondition: function(room) {
     let quota = 0;
     for (var name in GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
+      if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad) { continue; }
       if (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad) {
         for (var i = 0; i < GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad.length; i++) {
           let bodyCost = utilities.bodyCost(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].body);
           if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].name 
-            && room.energyCapacityAvailable >= bodyCost) {
+            && room.energyCapacityAvailable >= bodyCost
+            && (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts 
+            || (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts.length > 0
+              && room.memory.science && room.memory.science.boosts
+              && _.reduce(boosts, function(memo,bodypart) { 
+                return (memo && room.memory && room.memory.science && room.memory.science.boosts && room.memory.science.boosts[bodypart]) ? true : false; 
+              }, true))) ) {
             quota++;
           }
         }

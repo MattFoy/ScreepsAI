@@ -40,6 +40,7 @@ const resources = require('resources');
 profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
+  require('commandLineUtilities')();
   utilities.initGameState();
   utilities.pruneMemory();
 
@@ -100,6 +101,21 @@ module.exports.loop = function () { profiler.wrap(function() {
       if (Game.time % 6 === 2) {
         utilities.setupTerminalTradingPlan(room);
       }
+
+      if (room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
+        && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
+        // unload it!
+        //console.log(room.name + ' has too much energy...');
+        let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my && r.storage && r.terminal 
+          && r.storage.store.energy && r.storage.store.energy < 400000 
+          && _.sum(r.terminal.store) < 200000);
+        if (destinationRooms.length > 0) {
+          destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
+            - (b.storage.store.energy ? b.storage.store.energy : 0));
+          //console.log(room.name + ' should send energy to ' + destinationRooms[0].name)
+          Game.sendEnergy(room.name, destinationRooms[0].name);
+        }
+      }
     } else {
       //console.log(roomName + " isn't mine.");
     }
@@ -143,5 +159,4 @@ module.exports.loop = function () { profiler.wrap(function() {
       };
     })(); // collect_stats
   }
-  require('commandLineUtilities')();
 });}

@@ -415,7 +415,17 @@ module.exports = function() {
     if (!target) {
       target = this.findClosestByPath(FIND_HOSTILE_STRUCTURES, {
         filter: function(object) {
-          return (object.structureType === STRUCTURE_TOWER || object.structureType === STRUCTURE_SPAWN)
+          return (object.structureType === STRUCTURE_TOWER)
+            && -1 === GameState.allies.indexOf(object.owner.username);
+        }
+      });
+    }
+
+    // Then towers
+    if (!target) {
+      target = this.findClosestByPath(FIND_HOSTILE_STRUCTURES, {
+        filter: function(object) {
+          return (object.structureType === STRUCTURE_SPAWN)
             && -1 === GameState.allies.indexOf(object.owner.username);
         }
       });

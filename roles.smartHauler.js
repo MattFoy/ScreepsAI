@@ -267,8 +267,13 @@ let roleSmartHauler = {
       //console.log(carryRequiredForExtractor);
     }
 
-    return ((Math.ceil(_.sum(room.memory.energySourceFlags_details, 'carryRequired') + carryRequiredForExtractor)
-      / (_.groupBy(this.determineBodyParts(room))[CARRY].length * 50)));
+    let totalCarryRequired = _.sum(room.memory.energySourceFlags_details, 'carryRequired') + carryRequiredForExtractor;
+
+    if (room.controller.level >= 8) {
+      totalCarryRequired *= 0.9;
+    }
+
+    return (Math.ceil(totalCarryRequired / (_.groupBy(this.determineBodyParts(room))[CARRY].length * 50)));
   },
 
   determinePriority: function(room, rolesInRoom) {

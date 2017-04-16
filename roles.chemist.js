@@ -234,10 +234,36 @@ function getChemistTask(creep) {
     });
 
     if (outputLabs.length > 0) {
+      let reactionMineral = 'none';
+      if (REACTIONS[creep.room.memory.science.resource1] 
+        && REACTIONS[creep.room.memory.science.resource1][creep.room.memory.science.resource2]) {
+        reactionMineral = REACTIONS[creep.room.memory.science.resource1][creep.room.memory.science.resource2];  
+      }
+      
       // 8. Remove all minerals from Output labs if wrong type
-
+      for(var i = 0; i < outputLabs.length; i++) {
+        let lab = outputLabs[i];
+        if (lab.mineralAmount > 0 && lab.mineralType && lab.mineralType !== reactionMineral) {
+          creep.memory.chemistry.targetLabId = lab.id;
+          creep.memory.chemistry.task = 'unload';
+          creep.memory.chemistry.mineralType = lab.mineralType;
+          creep.memory.chemistry.amount = lab.mineralAmount;
+          return;
+        }
+      }
 
       // 9. Keep output labs under half resources
+      for(var i = 0; i < outputLabs.length; i++) {
+        let lab = outputLabs[i];
+        if (lab.mineralAmount > Math.min(creep.carryCapacity, (lab.mineralCapacity / 2)) 
+          && lab.mineralType && lab.mineralType === reactionMineral) {
+          creep.memory.chemistry.targetLabId = lab.id;
+          creep.memory.chemistry.task = 'unload';
+          creep.memory.chemistry.mineralType = lab.mineralType;
+          creep.memory.chemistry.amount = Math.min(creep.carryCapacity, lab.mineralAmount);
+          return;
+        }
+      }
 
 
     }

@@ -53,11 +53,6 @@ profiler.enable();
 module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
 
-  // to tide me over until morning...
-  if (Game.time % 2000 === 333) {
-    Game.spawnHelpFor('W87S43', 1, 'upgrader');
-  }
-
   utilities.initGameState();
   utilities.pruneMemory();
 
@@ -95,7 +90,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
       }
-      if (Game.time % 173 === 13) {
+      if (Game.time % 373 === 13) {
         console.log("Generating upgrade sweet spots");
         utilities.generateUpgradeSweetSpots(room);
       }

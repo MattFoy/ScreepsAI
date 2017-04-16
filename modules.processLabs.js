@@ -91,9 +91,26 @@ function processLabs(room) {
       room.visual.text('i', lab1.pos.x, lab1.pos.y);
       room.visual.text('i', lab2.pos.x, lab2.pos.y);
 
-      room.memory.science.reaction = RESOURCE_HYDROXIDE;
-      room.memory.science.resource1 = RESOURCE_HYDROGEN;
-      room.memory.science.resource2 = RESOURCE_OXYGEN;
+      delete room.memory.science.reaction;
+      switch (room.name) {
+        case 'W82S43':
+          room.memory.science.resource1 = RESOURCE_HYDROGEN;
+          room.memory.science.resource2 = RESOURCE_OXYGEN;
+          break
+        case 'W83S43':
+          room.memory.science.resource1 = RESOURCE_HYDROGEN;
+          room.memory.science.resource2 = RESOURCE_UTRIUM;
+          break;
+        case 'W85S41':
+          room.memory.science.resource1 = RESOURCE_UTRIUM_ACID;
+          room.memory.science.resource2 = RESOURCE_CATALYST;
+          break;
+        default:
+          delete room.memory.science.resource1;
+          delete room.memory.science.resource2;
+          break;
+      }
+
     }
 
     labs.forEach(function(lab) {

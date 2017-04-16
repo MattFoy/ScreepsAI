@@ -138,8 +138,10 @@ module.exports = {
 
 			let moving = false;
 			if (woundedSquadMembers.length > 0) {
-				creep.moveTo(woundedSquadMembers[0]);
-				moving = true;
+				if (woundedSquadMembers[0].name !== creep.name) {
+					creep.moveTo(woundedSquadMembers[0]);
+					moving = true;
+				}
 				if (creep.heal(woundedSquadMembers[0]) === ERR_NOT_IN_RANGE) {
 					if (creep.pos.getRangeTo(woundedSquadMembers[0]) <= 3) {
 						creep.rangedHeal(woundedSquadMembers[0]);	

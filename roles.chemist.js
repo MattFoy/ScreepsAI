@@ -198,7 +198,7 @@ function getChemistTask(creep) {
             mineralsAvailable += creep.room.terminal.store[res];
           }
           let mineralsRequired = Math.min(creep.carryCapacity, lab.mineralCapacity - lab.mineralAmount);
-          if (lab.mineralAmount && lab.mineralAmount < (lab.mineralCapacity / 2)
+          if ((lab.mineralAmount === 0 || (lab.mineralAmount > 0 && lab.mineralAmount < (lab.mineralCapacity / 2)))
             && (!lab.mineralType || lab.mineralType === res)
             && mineralsAvailable >= mineralsRequired) {
             creep.memory.chemistry.targetLabId = lab.id;

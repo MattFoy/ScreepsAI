@@ -1,6 +1,17 @@
 /*
 
 TODO:
+* Power Bank code
+
+* Custom lab plans for reactions in each room
+ -- manual setup? How to automate the "plan" otherwise? :\
+ -- how to route resources?
+ -- when to switch over reaction types?
+
+* Finish chemist code
+  -- load nukers
+  -- drain output labs (probably going to be important soon... lol)
+
 * Set up link miners 
   - reduce hauling required
   - modify builder body parts accordingly
@@ -41,6 +52,12 @@ profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
+
+  // to tide me over until morning...
+  if (Game.time % 2000 === 333) {
+    Game.spawnHelpFor('W87S43', 1, 'upgrader');
+  }
+
   utilities.initGameState();
   utilities.pruneMemory();
 

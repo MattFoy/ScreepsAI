@@ -53,7 +53,7 @@ let roleSquaddie = {
           && (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts 
             || (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts.length > 0
               && room.memory.science && room.memory.science.boosts
-              && _.reduce(boosts, function(memo,bodypart) { 
+              && _.reduce(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts, function(memo,bodypart) { 
                 return (memo && room.memory && room.memory.science && room.memory.science.boosts && room.memory.science.boosts[bodypart]) ? true : false; 
               }, true))) ) {
           squad = name;
@@ -105,7 +105,7 @@ let roleSquaddie = {
             && (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts 
             || (GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts.length > 0
               && room.memory.science && room.memory.science.boosts
-              && _.reduce(boosts, function(memo,bodypart) { 
+              && _.reduce(GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[name].squad[i].boosts, function(memo,bodypart) { 
                 return (memo && room.memory && room.memory.science && room.memory.science.boosts && room.memory.science.boosts[bodypart]) ? true : false; 
               }, true))) ) {
             quota++;

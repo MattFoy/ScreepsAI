@@ -68,27 +68,28 @@ function processCreeps() {
           if (!fleeing) {
             if (creep.memory.boosts && creep.memory.boosts.length > 0 && !creep.memory.isBoosted) {
               let isBoosted = true;
-              for (let bodyType in creep.memory.boosts) {
+              for (var i = 0; i < creep.memory.boosts.length; i++) {
+                let bodyType = creep.memory.boosts[i];
                 if (!creep.isBoosted(bodyType)) {
+                  console.log('Boosting...' + bodyType);
                   if (Game.rooms[creep.memory.origin].memory.science 
                     && Game.rooms[creep.memory.origin].memory.science.boosts
                     && Game.rooms[creep.memory.origin].memory.science.boosts[bodyType]) {
+
                     let lab = Game.getObjectById(Game.rooms[creep.memory.origin].memory.science.boosts[bodyType]);
                     if (lab) {
-                      isBoosted = false;
                       if (lab.boostCreep(creep) === ERR_NOT_IN_RANGE) {
                         creep.travelTo(lab);
                       }
-                      break;
                     }
                   }
+                  isBoosted = false;
+                  break;
                 } else {
                   continue;
                 }
               }
-              if (isBoosted) {
-                creep.memory.isBoosted;
-              }
+              creep.memory.isBoosted = isBoosted;
             } else {
               roles[creep.memory.role].run(creep);
             }

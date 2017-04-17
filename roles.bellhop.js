@@ -21,7 +21,7 @@ let roleBellhop = {
     }
     
     if (!creep.room.storage) {
-        console.log('Bellhop, no sotrage: ' + creep.name + ': ' + JSON.stringify(creep.pos));
+        console.log('Bellhop, no storage: ' + creep.name + ': ' + JSON.stringify(creep.pos));
         creep.memory.returnToOrigin = true;
         return;
     }
@@ -97,7 +97,7 @@ let roleBellhop = {
 
           if (creep.room.memory.tradingPlan.resourceQuantities[resource]
             && terminalAmount < quotaAmount) {
-            //console.log(resource + ': ' + creep.room.terminal.store[resource] + ', < ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
+            //console.log('stock! ' + resource + ': ' + creep.room.terminal.store[resource] + ', < ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
             terminalNeedsResourceStocking = true;
           }
         }
@@ -294,21 +294,26 @@ let roleBellhop = {
           if (creep.transfer(creep.room.storage, resource) === ERR_NOT_IN_RANGE) {
             creep.travelTo(creep.room.storage, {range: 1});
           } else {
+            //console.log('dumped');
             creep.memory.bellhopTask = 'idle';
           }
         }        
       } else {
+        let excessExists = false;
         for (var resourceIdx in RESOURCES_ALL) {
           let resource = RESOURCES_ALL[resourceIdx];
           if (resource === RESOURCE_ENERGY) { continue; }
 
-          let delta = creep.room.terminal.store[resource] 
-            - creep.room.memory.tradingPlan.resourceQuantities[resource];
-          let excessExists = false;
+          let delta = (creep.room.terminal.store[resource] 
+              ? creep.room.terminal.store[resource]
+              : 0)
+            - (creep.room.memory.tradingPlan.resourceQuantities[resource] 
+              ? creep.room.memory.tradingPlan.resourceQuantities[resource]
+              : 0);
           let carry = _.sum(creep.carry);
           if (delta > 0) {
             excessExists = true;
-            let withdrawAmount = Math.min(delta, carry);
+            let withdrawAmount = Math.min(delta, creep.carryCapacity - carry);
             if (withdrawAmount > 0) {
               let result = creep.withdraw(creep.room.terminal, resource, withdrawAmount);
               if (result === ERR_NOT_IN_RANGE) {
@@ -316,11 +321,13 @@ let roleBellhop = {
               } else if (result === OK) {
                 creep.memory.carrying = true;
               }
+            } else {
+              //console.log('wat')
             }
-          }          
-          if (!excessExists) {
-            creep.memory.bellhopTask = 'idle';
           }
+        }
+        if (!excessExists) {
+          creep.memory.bellhopTask = 'idle';
         }
       } 
     } else if (creep.memory.bellhopTask === "term_in_e") {
@@ -353,6 +360,7 @@ let roleBellhop = {
           }
         }        
       } else {
+        let deficitExists = false;
         for (var resourceIdx in RESOURCES_ALL) {
           let resource = RESOURCES_ALL[resourceIdx];
           if (resource === RESOURCE_ENERGY) { continue; }
@@ -361,7 +369,6 @@ let roleBellhop = {
           let terminalAmount = (creep.room.terminal.store[resource] ? creep.room.terminal.store[resource] : 0);
 
           let delta = quotaAmount - terminalAmount;
-          let deficitExists = false;
           let carry = _.sum(creep.carry);
           if (delta > 0) {
             deficitExists = true;
@@ -375,9 +382,9 @@ let roleBellhop = {
               }
             }
           }
-          if (!deficitExists) {
-            creep.memory.bellhopTask = 'idle';
-          }
+        }        
+        if (!deficitExists) {
+          creep.memory.bellhopTask = 'idle';
         }
       } 
     } else if (creep.memory.bellhopTask === "idle") {

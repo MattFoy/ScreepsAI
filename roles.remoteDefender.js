@@ -25,11 +25,10 @@ let roleRemoteDefender = {
     if (creep.memory.roomToDefend && Game.rooms[creep.memory.origin].memory.defend.indexOf(creep.memory.roomToDefend) === -1) {
       creep.memory.roomToDefend = undefined;
     } else if (!creep.memory.roomToDefend && creep.room.find(FIND_HOSTILE_CREEPS).length > 0) {
-      creep.memory.roomToDefend = creep.room;
+      creep.memory.roomToDefend = creep.room.name;
     }
 
     if (creep.memory.roomToDefend) {
-
       if(creep.room.name !== creep.memory.roomToDefend) {
         if (creep.getActiveBodyparts(MOVE) === 0) {
           creep.suicide();
@@ -121,6 +120,8 @@ let roleRemoteDefender = {
           }
         }       
       }
+    } else {
+      creep.memory.role = 'suicide';
     }
   }, 'run:remoteDefender'),
 

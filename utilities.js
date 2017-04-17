@@ -293,8 +293,10 @@ function initializeMyRoomMemory(room) {
   if (!room.memory.responsibleForRooms) { room.memory.responsibleForRooms = []; }
   if (!room.memory.defend) { room.memory.defend = []; }
   if (!room.memory.hostileInfo) { room.memory.hostileInfo = {}; }
+  
+  if (!room.memory.hauling) { room.memory.hauling = {}; }
 
-  if (!room.memory.energySourceFlags_details) { room.memory.energySourceFlags_details = {}; }
+  if (room.memory.energySourceFlags_details) { delete room.memory.energySourceFlags_details; }
 
   if (!room.memory.tradingPlan) { room.memory.tradingPlan = {}; }
 
@@ -572,7 +574,13 @@ function setupTerminalTradingPlan(room) {
       if (room.terminal.store[resource]) {
         terminalAmount = room.terminal.store[resource];
       }
-      room.memory.tradingPlan.resourceQuantities[resource] = Math.min(qtyAvailable, Math.min(100000, Math.max(5000, (terminalAmount + qtyAvailable) - 100000)));
+      if (qtyAvailable > 100000) {
+        room.memory.tradingPlan.resourceQuantities[resource] = Math.min(100000, (terminalAmount + qtyAvailable) - 100000);
+      } else if (qtyAvailable > 5000) {
+        room.memory.tradingPlan.resourceQuantities[resource] = 5000;
+      } else {
+        room.memory.tradingPlan.resourceQuantities[resource] = 0;
+      }
     }
     room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
     if (room.storage && room.storage.store[RESOURCE_ENERGY] > 500000) {

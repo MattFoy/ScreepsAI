@@ -104,7 +104,9 @@ module.exports = function() {
 
         if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
           //console.log(JSON.stringify(idealPositions[0]));
-          let roomPos = Game.rooms[idealPositions[0].roomName].getPositionAt(idealPositions[0].x, idealPositions[0].y);
+          let idealRoomPositions = _.map(idealPositions, (iPos) => 
+            Game.rooms[iPos.roomName].getPositionAt(iPos.x, iPos.y));
+          let roomPos = this.pos.findClosestByPath(idealRoomPositions);;
           //console.log(JSON.stringify(roomPos));
           this.travelTo(roomPos, {range: 0, ignoreCreeps: false});
         }

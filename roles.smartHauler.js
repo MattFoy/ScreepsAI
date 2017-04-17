@@ -117,7 +117,7 @@ let roleSmartHauler = {
 
           if (!creep.memory.haulingResources) {
             // this is the tricky part, choose a source...
-            var sourceDetails = origin.memory.energySourceFlags_details;
+            var sourceDetails = origin.memory.hauling.sourceDetails;
             var targets = _.filter(sourceDetails, 
               (srcDet) => (
                 origin.memory.defend.indexOf(srcDet.room) === -1
@@ -130,8 +130,8 @@ let roleSmartHauler = {
               creep.memory.intendedSource = targets[0].name;
               //console.log("Retrieving energy from : " + creep.memory.intendedSource);
 
-              Game.rooms[creep.memory.origin].memory.energySourceFlags_details[creep.memory.intendedSource]['energy'] = 
-                Game.rooms[creep.memory.origin].memory.energySourceFlags_details[creep.memory.intendedSource]['energy'] 
+              Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] = 
+                Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] 
                 - (creep.carryCapacity - creep.carry.energy);
             } else {
               //console.log("no energy to haul...")
@@ -267,13 +267,18 @@ let roleSmartHauler = {
       //console.log(carryRequiredForExtractor);
     }
 
-    let totalCarryRequired = _.sum(room.memory.energySourceFlags_details, 'carryRequired') + carryRequiredForExtractor;
-
-    if (room.controller.level >= 8) {
-      totalCarryRequired *= 0.9;
+    let totalCarryRequired = _.sum(room.memory.hauling.sourceDetails, 'carryRequired') + carryRequiredForExtractor;
+    if (room.memory.hauling && room.memory.hauling.carryAdjustment !== undefined) {
+      let maxAdjustment = Math.round(totalCarryRequired / 3);
+      room.memory.hauling.carryAdjustment = Math.max(-1 * maxAdjustment, Math.min(room.memory.hauling.carryAdjustment, 300));
+      totalCarryRequired += room.memory.hauling.carryAdjustment;
+      
+      // console.log('`-- > [' + room.name + '] -> carry required: ' + totalCarryRequired 
+      //   + ', adj:' + room.memory.hauling.carryAdjustment 
+      //   + ', maxEnergy: ' + room.memory.hauling.maxContainerEnergy);
     }
 
-    return (Math.ceil(totalCarryRequired / (_.groupBy(this.determineBodyParts(room))[CARRY].length * 50)));
+    return (Math.round(totalCarryRequired / (_.groupBy(this.determineBodyParts(room))[CARRY].length * 50)));
   },
 
   determinePriority: function(room, rolesInRoom) {
@@ -282,7 +287,7 @@ let roleSmartHauler = {
        && (rolesInRoom['upgrader'] && rolesInRoom['upgrader'].length >= 1)) {
       // subtract 2 from the priority for every thousand energy (rounded up) at the 'worst' energy source
       // up to a maximum of 16, so we only supersede miners at the most.
-      energyFactor = Math.min(16, (2 * Math.max(0, Math.ceil((_.max(room.memory.energySourceFlags_details, 'energy').energy - 2000) / 1000))));
+      energyFactor = Math.min(16, (2 * Math.max(0, Math.ceil((_.max(room.memory.hauling.sourceDetails, 'energy').energy - 2000) / 1000))));
     }
     return 55 - energyFactor;
   }

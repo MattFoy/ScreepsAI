@@ -79,7 +79,7 @@ module.exports = function() {
 		for (var roomName in Game.rooms) {
 			let room = Game.rooms[roomName];
 			if (room && room.controller && room.controller.my) {
-				let maxContainerEnergy = _.max(room.memory.energySourceFlags_details, 'energy');
+				let maxContainerEnergy = _.max(room.memory.hauling.sourceDetails, 'energy');
 	      
 	      let roomStatusReport = 'ROOM: <a href="' + '#!/room/' + roomName + '">' + roomName + '</a>' 
 	        + ' Lvl.' + room.controller.level 

@@ -3,6 +3,8 @@
 TODO:
 * Power Bank code
 
+* remote defender squads ( >1 )
+
 * Custom lab plans for reactions in each room
  -- manual setup? How to automate the "plan" otherwise? :\
  -- how to route resources?
@@ -10,7 +12,6 @@ TODO:
 
 * Finish chemist code
   -- load nukers
-  -- drain output labs (probably going to be important soon... lol)
 
 * Set up link miners 
   - reduce hauling required
@@ -19,20 +20,19 @@ TODO:
 * Auto-calc no. of necessary builders/repairers based on queue
   - need to determine builder work part effective time
 
-6. Make haulers prioritize (slightly) things that are closer to them
+* Make haulers prioritize (slightly) things that are closer to them
   * i.e. 5000 energy within 20 ticks is probably more valuable that 6000 90 away.
 
-8. Create base blueprinting solution 
+* Create base blueprinting solution 
   * design 'ideal' base.
 
-10. Add max energy threshold to market queries / filter, wait for RCL 6...
+* Add max energy threshold to market queries / filter, wait for RCL 6...
 
-12. mineral extractors should wait if the container is full, 
+*mineral extractors should wait if the container is full, 
   * not mine it and drop it and also not try to go store it somewhere else...
   * can cause issues with fleeing logic though
 
---- SQUAD LOGIC:
-  * recheck squad periodically
+* recheck squad periodically?
    respawn missing squaddies? Or wait until all gone then reform from scratch?
    depends on the tactic, I suppose?
 
@@ -86,14 +86,18 @@ module.exports.loop = function () { profiler.wrap(function() {
     // Process my rooms
     if (room.controller && room.controller.my) {
       utilities.initializeMyRoomMemory(room);
+      
       if (!room.memory.miningFlagsInitialized) {
         utilities.setupMiningFlags(roomName);
-      }      
+      }
+
       utilities.calculateHaulingEconomy(room);
+      
       if (Game.time % 3 === 2) {
         utilities.calculateDefense(room);
       }
-      if (Game.time % 373 === 13) {
+      
+      if (Game.time % 373 === 13 && Game.cpu.bucket > 9000) {
         console.log("Generating upgrade sweet spots");
         utilities.generateUpgradeSweetSpots(room);
       }
@@ -104,7 +108,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       modules.processLinks(room);
       //console.log(Game.cpu.getUsed());
 
-      if (Game.time % 10 === 7) {
+      if (Game.time % 10 === 7 && Game.cpu.bucket > 9000) {
         modules.processLabs(room);
         //console.log(Game.cpu.getUsed());
       }
@@ -113,11 +117,12 @@ module.exports.loop = function () { profiler.wrap(function() {
         modules.processSpawning(room);
         //console.log(Game.cpu.getUsed());
       }
-      if (Game.time % 6 === 2) {
+      if (Game.time % 6 === 2 && Game.cpu.bucket > 9000) {
         utilities.setupTerminalTradingPlan(room);
       }
 
-      if (room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
+      if (Game.cpu.bucket > 9000 
+        && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
         && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
         // unload it!
         //console.log(room.name + ' has too much energy...');

@@ -112,7 +112,7 @@ function processCreeps() {
     } catch (e) {
       console.log("A creep threw an exception: " + name);
       console.log(e);
-      throw e;
+      //throw e;
     }
   }
 }

@@ -48,7 +48,7 @@ let roleChemist = {
   },
 
   getQuota: function(room) {
-    return ((room.memory.science 
+    return ((room.controller && room.controller.my && room.controller.level >= 7 && room.memory.science 
       && ((room.memory.science.inputLabs && room.memory.science.inputLabs.length > 0)
         || (room.memory.science.boosts)))
       ? 1 

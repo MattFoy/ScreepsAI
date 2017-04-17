@@ -21,7 +21,7 @@ function processLabs(room) {
       }
     }
 
-    if (Memory.empire && Memory.empire.atWar) {
+    if (Memory.empire && Memory.empire.atWar && labs.length >= 4) {
       // choose boosting labs
       //delete room.memory.science.boosts;
       if (!room.memory.science.boosts) {
@@ -132,7 +132,6 @@ function processLabs(room) {
           let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
           lab.runReaction(lab1, lab2);
         }
-
       }
     });
   }

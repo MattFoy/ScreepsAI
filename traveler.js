@@ -134,6 +134,7 @@ class Traveler {
     });
   }
   travelTo(creep, destination, options = {}) {
+    if (!destination) { return; }
     if (!destination.roomName) {
       if (destination.pos && (destination.pos.roomName)) {
       destination = destination.pos;
@@ -239,7 +240,11 @@ class Traveler {
       travelData.dest = destination;
       travelData.prev = undefined;
       let cpu = Game.cpu.getUsed();
-      let ret = this.findTravelPath(creep, destination, options);
+      let ret;
+      try {
+        ret = this.findTravelPath(creep, destination, options);
+      } catch (e) { console.log('EXCEPTION: ' + creep.name + ', ' + creep.memory.role + ', ' + creep.room.name + ', ' + JSON.stringify(destination)); throw e; }
+      if (!ret) { return; }
       travelData.cpu += (Game.cpu.getUsed() - cpu);
       travelData.count++;
       if (travelData.cpu > REPORT_CPU_THRESHOLD) {

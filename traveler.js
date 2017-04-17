@@ -2,9 +2,9 @@ require('prototypes.room')();
 
 "use strict";
 const REPORT_CPU_THRESHOLD = 100;
-const DEFAULT_MAXOPS = 20000;
-const DEFAULT_STUCK_VALUE = 4;
-const DEFAULT_STUCK_PATH_DURATION = 8;
+const DEFAULT_MAXOPS = 40000;
+const DEFAULT_STUCK_VALUE = 5;
+const DEFAULT_STUCK_PATH_DURATION = 15;
 class Traveler {
   constructor() {
     // change this memory path to suit your needs

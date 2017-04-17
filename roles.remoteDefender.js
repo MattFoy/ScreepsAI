@@ -24,9 +24,12 @@ let roleRemoteDefender = {
     
     if (creep.memory.roomToDefend && Game.rooms[creep.memory.origin].memory.defend.indexOf(creep.memory.roomToDefend) === -1) {
       creep.memory.roomToDefend = undefined;
+    } else if (!creep.memory.roomToDefend && creep.room.find(FIND_HOSTILE_CREEPS).length > 0) {
+      creep.memory.roomToDefend = creep.room;
     }
 
     if (creep.memory.roomToDefend) {
+
       if(creep.room.name !== creep.memory.roomToDefend) {
         if (creep.getActiveBodyparts(MOVE) === 0) {
           creep.suicide();
@@ -37,23 +40,48 @@ let roleRemoteDefender = {
           creep.travelTo({x:25, y:25, roomName: creep.memory.roomToDefend});
         }
       } else {
-        var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'Source Keeper' });
+        var targets = creep.room.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'Source Keeper' });
+        
+        let target;
+        if (creep.memory.targetId) {
+          target = Game.getObjectById(creep.memory.targetId);
+          if (!target) {
+            delete creep.memory.targetId;
+          }
+        }
+
+        if (!target) {
+          target = creep.pos.findClosestByRange(_.filter(targets, 
+            (t) => t.getActiveBodyparts(ATTACK) > 0 || t.getActiveBodyparts(RANGED_ATTACK) > 0));
+          if (target) { creep.memory.targetId = target.id; }
+        }
+
         // To arms!
         if (target) {
-          creep.rangedAttack(target);
+          if (targets.length > 1) {
+            let targetsInRange = _.reduce(targets, (memo,c) => memo + (creep.pos.getRangeTo(c) <= 3 ? 1 : 0), 0);
+            let healersNearTarget = _.reduce(targets, (memo,c) => memo + (target.pos.getRangeTo(c) <= 3 ? 1 : 0), 0)
+            if (targetsInRange > 1 && healersNearTarget > 0) {
+              creep.rangedMassAttack();
+            } else {
+              creep.rangedAttack(target);
+            }
+          } else {
+            creep.rangedAttack(target);
+          }
 
           if (creep.getActiveBodyparts(ATTACK) <= 0 && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
             let dist = creep.pos.getRangeTo(target);
             if (dist <= 3) { 
               creep.rangedAttack(target);
             }
-
             if (dist < 3) {
               creep.fleeFrom([target], 3);
             } else if (dist > 3) {
               creep.moveTo(target);
             }
-          } else if (creep.attack(target) == ERR_NOT_IN_RANGE) {
+          } else {
+            creep.attack(target);
             creep.moveTo(target, movePathStyle);
           }
 
@@ -92,39 +120,6 @@ let roleRemoteDefender = {
             creep.memory.role = 'suicide';
           }
         }       
-      }
-    } else {
-      var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-      // To arms!
-      if (target) {
-        creep.rangedAttack(target);
-
-        if (creep.getActiveBodyparts(ATTACK) <= 0 && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
-          let dist = creep.pos.getRangeTo(target);
-          if (dist <= 3) { 
-            creep.rangedAttack(target);
-          }
-
-          if (dist < 3) {
-            creep.fleeFrom([target], 3);
-          } else if (dist > 3) {
-            creep.moveTo(target);
-          }
-        } else if (creep.attack(target) == ERR_NOT_IN_RANGE) {
-          creep.moveTo(target, movePathStyle);
-        }
-
-        if (creep.pos.x === 0) {
-          creep.move(RIGHT);
-        } else if (creep.pos.x === 49) {
-          creep.move(LEFT);
-        } else if (creep.pos.y === 0) {
-          creep.move(BOTTOM);
-        } else if (creep.pos.y === 49) {
-          creep.move(TOP);
-        }
-      } else {
-        creep.memory.role = 'suicide';
       }
     }
   }, 'run:remoteDefender'),
@@ -174,7 +169,7 @@ let roleRemoteDefender = {
      if (maxEnergy >= 4000) {
       return [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK];
     } else if (maxEnergy >= 2300) {
-      return [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,RANGED_ATTACK,RANGED_ATTACK];
+      return [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK];
     } else if (maxEnergy >= 1600) {
       return [TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,MOVE,RANGED_ATTACK,RANGED_ATTACK];
     } else if (maxEnergy >= 770) {

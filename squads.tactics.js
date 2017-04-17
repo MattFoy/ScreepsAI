@@ -159,13 +159,49 @@ module.exports = {
 				if (focalPoints.length > 0) {
 					if (focalPoints.length === 1) {
 						creep.moveTo(focalPoints[0]);
-					} else {
+					} else if (focalPoints.length > 1) {
 						// uh... follow the squad? \_o_/
-						creep.moveTo(focalPoints[0]);
+						creep.moveTo(creep.pos.findClosestByRange(focalPoints));
 					}
 				} else {
 					creep.travelTo(squad.rallyPoint, { range: 1, allowHostile: true });
 				}
+			}
+		}
+	},
+
+	saboteurWithMedic: {
+		run: function(creep) {
+			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
+			if (creep.room.name !== squad.target) {
+				if (Game.rooms[squad.target]) {
+					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
+				} else {
+					creep.travelTo({x: 25, y: 25, roomName: squad.target}, { allowHostile: true });
+				}
+			} else {
+				let medics = _.map(
+					_.filter(squad.squad, (s) => s.position === 'simpleMedic' && Game.creeps[s.name]),
+					(s) => Game.creeps[s.name]);
+
+				let regrouping = false;
+				if (medics.length > 0 && creep.hits < creep.hitsMax) {
+					let closestMedic = creep.pos.findClosestByRange(medics);
+					if (creep.pos.getRangeTo(closestMedic) > 1) {
+						creep.moveTo(closestMedic);
+						regrouping = true;
+					}
+				}
+				if (!regrouping) {
+					if (!creep.goDismantle()) {
+	          //creep.moveTo(flag);
+	          // nothing to fight?
+	          console.log('Dismantling done')
+	        } else {
+	          //battleCry = true;
+	          console.log('Dismantling...');
+	        }
+	      }
 			}
 		}
 	},

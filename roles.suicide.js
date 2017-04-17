@@ -10,9 +10,11 @@ let roleSuicide = {
       creep.memory.role = creep.memory.previousRole;
     }
       
-    if (creep.carry.energy > 0 && creep.room.storage) {
-      if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.travelTo(creep.room.storage, {range: 1});
+    if (_.sum(creep.carry) > 0 && creep.room.storage) {
+      for (let res in creep.carry) {
+        if (creep.transfer(creep.room.storage, res) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(creep.room.storage, {range: 1});
+        }
       }
     } else if (creep.getActiveBodyparts(MOVE) === 0) {
         creep.suicide();

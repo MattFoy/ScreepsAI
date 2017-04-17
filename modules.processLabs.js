@@ -32,6 +32,7 @@ function processLabs(room) {
         room.memory.science.boostMinerals[HEAL] = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
         room.memory.science.boostMinerals[TOUGH] = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
         room.memory.science.boostMinerals[ATTACK] = RESOURCE_CATALYZED_UTRIUM_ACID;
+        room.memory.science.boostMinerals[WORK] = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
 
         for (let bodyPart in room.memory.science.boostMinerals) {
           if (!room.memory.science.boosts[bodyPart]) {

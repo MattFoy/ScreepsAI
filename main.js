@@ -56,6 +56,9 @@ module.exports.loop = function () { profiler.wrap(function() {
   utilities.initGameState();
   utilities.pruneMemory();
 
+  let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
+  observer.observeRoom('W79S47');
+
   modules.processSquads();
 
   console.log(' ============================== Tick# ' + Game.time 

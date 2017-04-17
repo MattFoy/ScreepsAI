@@ -558,7 +558,8 @@ module.exports = function() {
       });
 
       let creep = this;
-      walls.sort((a,b) => (a.hits !== b.hits) ? a.hits - b.hits : a.pos.getRangeTo(creep) - b.pos.getRangeTo(creep));
+      walls.sort((a,b) => (a.hits !== b.hits) ? a.hits - b.hits : a.pos.getRangeTo(creep) - b.pos.getRangeTo(creep));      
+      _.filter(walls, (w) => w.pos.getRangeTo(this) < 10);
 
       for(var i = 0; i < walls.length; i++) {
         if (this.getRangeTo(walls[i]) <= 1) {

@@ -2,8 +2,9 @@ require('prototypes')();
 let roleScout = {
 
   spawnType: 'reservation',
+  flees: true,
+  recycleOnWound: false,
 
-  /** @param {Creep} creep **/
   run: function(creep) {    
     creep.reserveRoleSpecificFlag(creep.room.memory.scoutingFlags);
     if (creep.memory.roleSpecificFlag) {
@@ -24,5 +25,4 @@ let roleScout = {
     return 15;  
   }
 };
-
 module.exports = roleScout;

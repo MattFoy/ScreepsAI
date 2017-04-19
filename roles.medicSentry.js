@@ -69,9 +69,7 @@ let roleMedicSentry = {
             let sentry = creep.pos.findClosestByRange(FIND_MY_CREEPS, { filter: (c) => c.memory.role === 'skSentry' });
             //console.log(sentry);
             if (sentry) {
-              if (creep.pos.getRangeTo(sentry) > 1) {
-                creep.moveTo(sentry);  
-              }
+              creep.moveTo(sentry);
             } else {
               if (creep.pos.getRangeTo(flag) > 1) {
                 creep.travelTo(flag, {range: 1});  

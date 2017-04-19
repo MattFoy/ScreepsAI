@@ -22,6 +22,24 @@ let roleSquaddie = {
       } else {
         //creep.travelTo(squad.rallyPoint, {range: 1, ignoreCreeps: false, allowHostile: true })
       }
+      let heal = true;
+      if (heal) {
+        if (creep.hits < creep.hitsMax) {
+          creep.heal(creep);
+        } else {
+          // heal nearby miners / other guards?
+          let woundedCreeps = creep.room.find(FIND_MY_CREEPS, { filter: function(c) {
+            return c.hits < c.hitsMax 
+              && c.pos.getRangeTo(creep) <= 3;
+          }});
+          woundedCreeps.sort((a,b) => (a.hits / a.hitsMax) - (b.hits / b.hitsMax));
+          if (woundedCreeps.length > 0) {
+            if (creep.heal(woundedCreeps[0]) === ERR_NOT_IN_RANGE) {
+              creep.rangedHeal(woundedCreeps[0]);
+            }
+          }
+        }
+      }
     } else {
       if (!squad) { return; }
       let squadDetail = _.filter(squad.squad, (c) => c.name === creep.name)[0];

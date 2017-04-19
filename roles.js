@@ -30,6 +30,8 @@ roles['skSentry'] = require('roles.skSentry');
 
 roles['chemist'] = require('roles.chemist');
 
+roles['banksy'] = require('roles.banksy');
+
 roles['suicide'] = require('roles.suicide');
 
 module.exports = roles;

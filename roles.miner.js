@@ -84,11 +84,11 @@ let roleMiner = {
         if (flag.room && flag.room.controller) {
           if (flag.room.controller.reservation || flag.room.controller.my) {
             if (maxEnergy >= 1300) {
-              return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
+              return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
             } else if (maxEnergy >= 800) {
-              return [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+              return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));
             } else if (maxEnergy >= 550) {
-              return [WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE];
+              return Array(4).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(2).fill(MOVE));
             } else {
               return [WORK, WORK, MOVE];
             }
@@ -106,20 +106,20 @@ let roleMiner = {
           // todo: check this case...
 
           if (maxEnergy >= 3000) {
-            return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+            return Array(12).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(6).fill(MOVE));
           } if (maxEnergy >= 1300) {
-            return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
+            return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
           } else if (maxEnergy >= 800) {
-            return [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+            return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));
           }
         }
       } else {
         // a claimed room, so don't go up to the "3000" energy case, 
         // just 1300 since containers decay less rapidly
         if (maxEnergy >= 1300) {
-          return [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
+          return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
         } else if (maxEnergy >= 800) {
-          return [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+          return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));
         }
       }
     } 

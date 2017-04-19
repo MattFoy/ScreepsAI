@@ -69,7 +69,7 @@ let roleRemoteDefender = {
             creep.rangedAttack(target);
           }
 
-          if (creep.getActiveBodyparts(ATTACK) <= 0 && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
+          if (creep.getActiveBodyparts(ATTACK) <= 2 && creep.getActiveBodyparts(RANGED_ATTACK) > 2) {
             let dist = creep.pos.getRangeTo(target);
             if (dist <= 3) { 
               creep.rangedAttack(target);
@@ -167,7 +167,7 @@ let roleRemoteDefender = {
 
   determineBodyParts: function(room) {
     let maxEnergy = room.energyCapacityAvailable;
-     if (maxEnergy >= 4000) {
+    if (maxEnergy >= 4000) {
       return [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK];
     } else if (maxEnergy >= 2300) {
       return [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK];

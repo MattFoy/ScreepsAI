@@ -32,7 +32,12 @@ let roleRoomReserver = {
           creep.reserveController(controller);
           if (creep.pos.x !== flag.pos.x || creep.pos.y !== flag.pos.y) {
             creep.travelTo(flag, {range: 0});
+          } else {
+            if (!controller.sign || controller.sign.text !== GameState.signMessages['roomReserver']) {
+              creep.signController(controller, GameState.signMessages['roomReserver'])
+            }
           }
+
         }
       }
     }
@@ -53,7 +58,9 @@ let roleRoomReserver = {
     
     let controller = flag.room.controller;
     if (!controller) { return false; } // it's a highway? Why would a claim flag be in a highway?
-    return (!controller.reservation || controller.reservation.ticksToEnd < 2500);
+    return (!controller.reservation 
+      || (controller.reservation.username === GameState.username 
+        && controller.reservation.ticksToEnd < 2500));
   },
 
   determinePriority: function(room, rolesInRoom) {

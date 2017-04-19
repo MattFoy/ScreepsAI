@@ -24,6 +24,12 @@ let roleUpgrader = {
         creep.goGetEnergy(false, true);
       }
     }
+    if (!Game.rooms[creep.memory.origin].controller.sign 
+      || Game.rooms[creep.memory.origin].controller.sign.text !== GameState.signMessages['upgrader']) {
+      if (creep.signController(Game.rooms[creep.memory.origin].controller, GameState.signMessages['upgrader'])) {
+        creep.moveTo(Game.rooms[creep.memory.origin].controller);
+      }
+    }
   }, 'run:upgrader'),
 
   determineBodyParts: function(room) {

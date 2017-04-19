@@ -158,8 +158,8 @@ function calculateDefendersRequired(room, hostiles) {
 
     //console.log(totalEnemyHealth + ', ' + totalEnemyAttackPower + ', ' + totalEnemyRangedPower + ', ' + totalEnemyHealPower);
 
-    let attackParts = Math.ceil(totalEnemyAttackPower / ATTACK_POWER);
-    let rangeParts = Math.ceil(totalEnemyRangedPower / RANGED_ATTACK_POWER);
+    let attackParts = totalEnemyAttackPower / ATTACK_POWER;
+    let rangeParts = totalEnemyRangedPower / RANGED_ATTACK_POWER;
     let extraDmgRequired = Math.ceil(totalEnemyHealPower);
 
     //console.log("Parts Required: " + attackParts + '/' + rangeParts + '/' + extraDmgRequired + '/' + totalEnemyHealth);
@@ -169,14 +169,22 @@ function calculateDefendersRequired(room, hostiles) {
     } else if (attackParts >= rangeParts && extraDmgRequired > 0) {
       attackParts += extraDmgRequired / ATTACK_POWER;
     }
+    
+    attackParts = Math.max(0, Math.ceil(attackParts));
+    rangeParts = Math.max(0, Math.ceil(rangeParts));
 
-    let damageDealtPerTick = (rangeParts * RANGED_ATTACK_POWER) + (attackParts * ATTACK_POWER);
-    let ticksToClear = Math.ceil(totalEnemyHealth / damageDealtPerTick);
+    let damageDealtPerTick = Math.max(1, (rangeParts * RANGED_ATTACK_POWER) + (attackParts * ATTACK_POWER));
+    let ticksToClear = Math.ceil(totalEnemyHealth / damageDealtPerTick)
     let damageReseivedPerTick = (totalEnemyAttackPower + totalEnemyRangedPower);
 
     let idealBody = [];
-    Array(attackParts).fill().forEach(() => idealBody.push(ATTACK) && idealBody.push(MOVE));
-    Array(rangeParts).fill().forEach(() => idealBody.push(RANGED_ATTACK) && idealBody.push(MOVE));
+    if (attackParts > 0) {
+        //console.log(attackParts)
+        Array(attackParts).fill().forEach(() => idealBody.push(ATTACK) && idealBody.push(MOVE));
+    }
+    if (rangeParts > 0) {
+        Array(rangeParts).fill().forEach(() => idealBody.push(RANGED_ATTACK) && idealBody.push(MOVE));
+    }
 
     let healthRequired = ticksToClear * damageReseivedPerTick;
 
@@ -241,7 +249,10 @@ function calculateDefense(room) {
         if (_.filter(Game.creeps, (c) => c.memory.role === 'skSentry' 
           && Game.flags[c.memory.roleSpecificFlag].pos.roomName === rRoom.name) <= 0) {
 
-          let res = calculateDefendersRequired(room, hostiles);
+          let res = [];
+          if (Game.cpu.bucket > 2000) {
+            res = calculateDefendersRequired(room, hostiles);
+          }
           console.log(res);
 
           if (res.length > 0) {
@@ -478,8 +489,11 @@ function initGameState() {
     CARTOGRAPHY: 3
   };
   GameState.memory = {};
-  GameState.allies = [];
+  GameState.allies = ['NixNutz', 'SBense', 'Atanner'];
+  GameState.allies.push(GameState.username);
   GameState.cpuUsedToLoad = Game.cpu.getUsed();
+
+  if (!Memory.empire) { Memory.empire = {}; }
   
   //console.log(GameState.cpuUsedToLoad);
 
@@ -521,6 +535,14 @@ function initGameState() {
   if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
     GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads = {};
   }
+
+  if (!GameState.signMessages) { GameState.signMessages = {}; }
+  GameState.signMessages['roomReserver'] = 
+    "Reserved by Foy, AYCE alliance. Come chat with us on #ayce-public.";
+  GameState.signMessages['upgrader'] =
+    "It's an All You Can Eat buffet!";
+  GameState.signMessages['banksy'] =
+    "Extended AYCE territory.";
 }
 initGameState = profiler.registerFN(initGameState, 'initGameState');
 

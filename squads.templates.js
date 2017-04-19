@@ -43,6 +43,15 @@ module.exports = {
 		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] }
 	],
 	
+	smallRaidx3: [
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
+		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] }
+	],
+	
 	mediumRaid: [
 		{ position: 'simpleAttacker', body: [TOUGH,TOUGH,MOVE,MOVE,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK] },
 		{ position: 'simpleAttacker', body: [TOUGH,TOUGH,MOVE,MOVE,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK,MOVE,ATTACK] },

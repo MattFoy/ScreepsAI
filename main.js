@@ -48,7 +48,7 @@ const traveler = require('traveler');
 
 const resources = require('resources');
 
-profiler.enable();
+//profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
@@ -56,8 +56,14 @@ module.exports.loop = function () { profiler.wrap(function() {
   utilities.initGameState();
   utilities.pruneMemory();
 
-  let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
-  observer.observeRoom('W79S47');
+  try {
+    let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
+    observer.observeRoom('W86S41');
+  } catch (e) { }
+  try {
+    let observer2 = Game.getObjectById('58ed94cff06118c86d8f96c5');
+    observer2.observeRoom('W88S38');
+  } catch (e) { }
 
   modules.processSquads();
 
@@ -74,7 +80,7 @@ module.exports.loop = function () { profiler.wrap(function() {
 
   for(let roomName in Game.rooms) {
     // skip every third tick when we're low on CPU...
-    if (Game.cpu.bucket < 9000 && Game.time % 3 === 0) { break; }
+    if (Game.cpu.bucket < 4000 && Game.time % 3 === 0) { break; }
 
     let room = Game.rooms[roomName];
     utilities.initializeRoomMemory(room);
@@ -102,11 +108,8 @@ module.exports.loop = function () { profiler.wrap(function() {
         utilities.generateUpgradeSweetSpots(room);
       }
 
-      //console.log(Game.cpu.getUsed());
       modules.processTowers(room);
-      //console.log(Game.cpu.getUsed());
       modules.processLinks(room);
-      //console.log(Game.cpu.getUsed());
 
       if (Game.time % 10 === 7 && Game.cpu.bucket > 9000) {
         modules.processLabs(room);
@@ -144,12 +147,15 @@ module.exports.loop = function () { profiler.wrap(function() {
   for (var i in GameState.constants) {
     if (GameState.memory[GameState.constants[i]]) {
       let json = JSON.stringify(GameState.memory[GameState.constants[i]]);
-      //console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
+      console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
+      if ((json.length / 1024).toFixed(1) > 99) {
+        json = '';
+      }
       RawMemory.segments[GameState.constants[i]] = json;
     }
   }
 
-  if (Game.time % 12 === 4) {
+  if (Game.time % 12 === 4 && Game.cpu.bucket > 1000) {
     (function(){
       // Don't overwrite things if other modules are putting stuff into Memory.stats
       if (Memory.stats == null) {
@@ -179,4 +185,12 @@ module.exports.loop = function () { profiler.wrap(function() {
       };
     })(); // collect_stats
   }
+
+  if (!Memory.empire.helpRequired) { Memory.empire.helpRequired = 0; }
+  if (Game.time % 750 === 333) { Memory.empire.helpRequired++; }
+  if (Memory.empire.helpRequired > 0) {
+    Memory.empire.helpRequired -= 
+      Game.spawnHelpFor('W88S36', 1, 'builder');
+  }
+
 });}

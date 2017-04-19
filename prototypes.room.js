@@ -15,6 +15,31 @@ module.exports = function() {
     return spawn;
   }
 
+  Room.prototype.getDistanceTo = function(roomName) {
+    let thisRoom = this.name;
+    return Game.map.findRoute(thisRoom, Game.rooms[roomName], {
+      routeCallback: (roomName) => {
+        if (Game.map.getRoomLinearDistance(thisRoom, roomName) > 8) {
+          return false;
+        }
+        let parsed;
+        if (!parsed) {
+          parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+        }
+        let fMod = parsed[1] % 10;
+        let sMod = parsed[2] % 10;
+        let isSK = !(fMod === 5 && sMod === 5) &&
+          ((fMod >= 4) && (fMod <= 6)) &&
+          ((sMod >= 4) && (sMod <= 6));
+        if (isSK) {
+          return 10;
+        } else {
+          return 1;
+        }
+      }
+    }).length;
+  }
+
   Room.prototype.getTempStorage = function() {
     let flag = Game.flags[this.name + '_temp_storage'];
     if (flag && flag.pos.roomName === this.name) {

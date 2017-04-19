@@ -508,8 +508,8 @@ module.exports = function() {
               }
             }));
           }
-          this.moveTo(target);
         }
+        this.moveTo(target);
       }
       return true;
     }

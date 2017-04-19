@@ -147,7 +147,7 @@ module.exports.loop = function () { profiler.wrap(function() {
   for (var i in GameState.constants) {
     if (GameState.memory[GameState.constants[i]]) {
       let json = JSON.stringify(GameState.memory[GameState.constants[i]]);
-      console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
+      //console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
       if ((json.length / 1024).toFixed(1) > 99) {
         json = '';
       }

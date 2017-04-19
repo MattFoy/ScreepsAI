@@ -26,6 +26,8 @@ let roleBanksy = {
           }
         }        
       }
+    } else {
+      creep.suicide();
     }
   }, 'run:banksy'),
 

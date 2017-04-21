@@ -35,8 +35,6 @@ let roleMiner = {
         creep.memory.atDestination = true;
       }
 
-      //console.log(creep.name + ': ' + creep.memory.replaceBefore);
-
       if (!creep.memory.atDestination) {
         creep.travelTo(flag, { range: 0 });
                 
@@ -50,26 +48,67 @@ let roleMiner = {
           }
         }
       } else {
-        if (creep.harvest(creep.pos.findClosestByRange(FIND_SOURCES, 1)) == ERR_NOT_ENOUGH_RESOURCES) {
-          if (creep.carry.energy === 0) {
-            creep.tryToPickUp();
+        if (!creep.memory.sourceId) {
+          if (flag.room) {
+            let source = flag.pos.findClosestByRange(FIND_SOURCES);
+            if (source) {
+              creep.memory.sourceId = source.id;
+            }
           }
-          
-          let repairTargets = creep.pos.findInRange(FIND_STRUCTURES, 3, {
-            filter: function(structure) {
-              return structure.hits < structure.hitsMax
-                && structure.hitsMax - structure.hits > REPAIR_POWER
-                && structure.hits < 15e+5;
+        }
+
+        if (creep.memory.sourceId) {
+          if (creep.harvest(Game.getObjectById(creep.memory.sourceId)) == ERR_NOT_ENOUGH_RESOURCES) {
+            if (!creep.memory.interimBuild || !creep.memory.interimBuild.time
+              || Game.time - creep.memory.interimBuild.time > 1 ) {
+              creep.memory.interimBuild = {}
+              creep.memory.interimBuild.time = Game.time;
+
+              let target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, 3);
+              if(target) {
+                creep.memory.interimBuild.target = target.id;
+                creep.memory.interimBuild.mode = 'b';
+              } else {
+                let repairTargets = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+                  filter: function(structure) {
+                    return structure.hits < structure.hitsMax
+                      && structure.hitsMax - structure.hits > REPAIR_POWER
+                      && structure.hits < 15e+5;
+                  }
+                });
+                repairTargets.sort(function (a,b) {return (a.hits - b.hits)});
+                if (repairTargets.length > 0) {
+                  creep.memory.interimBuild.target = repairTargets[0].id;
+                  creep.memory.interimBuild.mode = 'r';
+                }
+              }
+
+              if (!creep.memory.interimBuild.target) {
+                creep.memory.interimBuild.time = Game.time + 10;
+              } 
             }
-          });
-          repairTargets.sort(function (a,b) {return (a.hits - b.hits)});
-          if (repairTargets.length > 0) {
-            creep.repair(repairTargets[0]);
-          } else {
-            let target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, 3);
-            if(target) {
-              creep.build(target);    
+
+            if (creep.carry.energy < creep.carryCapacity) {
+              creep.tryToPickUp();
             }
+
+            if (creep.memory.interimBuild) {
+              let target = Game.getObjectById(creep.memory.interimBuild.target);
+              if (target) {
+                if (creep.memory.interimBuild.mode === 'b') {
+                  creep.build(target);
+                } else if (creep.memory.interimBuild.mode === 'r') {
+                  creep.repair(target);
+                } else {
+                  console.log("Invalid interimBuild mode: " + creep.memory.interimBuild.mode);
+                  delete creep.memory.interimBuild;
+                  return;
+                }
+              } else {
+                delete creep.memory.interimBuild;
+                return;
+              }
+            }            
           }
         }
       }

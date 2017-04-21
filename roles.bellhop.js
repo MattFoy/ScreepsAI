@@ -40,12 +40,12 @@ let roleBellhop = {
 
         for (let i = 0; i < links.length; i++) {
           if (links[i].id !== link.id && links[i].id !== controllerLink.id) {
-            if (links[i].cooldown !== 0 && links[i].energy > 0 && link.energy > 0)  {
+            if (links[i].cooldown === 0 && links[i].energy > 0 && link.energy > 0)  {
               linkNeedsTending = true;
             }
           }
         }
-        if (!linkNeedsTending && controllerLink.energy < link.energyCapacity && link.energy < 700) {
+        if (!linkNeedsTending && controllerLink.energy < 400 && link.energy < 600) {
           linkNeedsFilling = true;
         }
       } else {
@@ -66,7 +66,9 @@ let roleBellhop = {
       }
     }
 
-    if (!creep.memory.bellhopTask || creep.memory.bellhopTask === "idle") {
+    if (!creep.memory.bellhopTask 
+      || (creep.memory.bellhopTask === "idle" 
+        && (!creep.memory.idleTimeout || Game.time - creep.memory.idleTimeout > 0))) {
       let x = (creep.room.find(FIND_STRUCTURES, {
         filter: function(structure) {
           return ((structure.structureType == STRUCTURE_EXTENSION ||
@@ -144,6 +146,8 @@ let roleBellhop = {
         creep.memory.bellhopTask = 'upgraders';
       } else {
         creep.memory.bellhopTask = 'idle';
+        console.log('bellhop nothing to do');
+        creep.memory.idleTimeout = Game.time + 10;
       }
     }
 
@@ -409,20 +413,24 @@ let roleBellhop = {
     creep.say(creep.memory.bellhopTask);
   }, 'run:bellhop'),
 
-  determineBodyParts: function(room) {
+  determineBodyParts: function(room, rolesInRoom) {
     let maxEnergy = room.energyCapacityAvailable;
-    if (maxEnergy >= 4000) {
-      return [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY];
-    } else if (maxEnergy >= 2300) {
-      return [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY];
-    } else if (maxEnergy >= 1500) {
-      return [CARRY,CARRY,MOVE,CARRY,CARRY,MOVE,CARRY,CARRY,MOVE,CARRY,CARRY,MOVE];
-    } else if (maxEnergy >= 1300) {
-      return [CARRY,CARRY,MOVE,CARRY,CARRY,MOVE,CARRY,CARRY,MOVE];
-    } else {
-      return [CARRY,CARRY,MOVE,CARRY,CARRY,MOVE];  
+    if (rolesInRoom !== undefined 
+      && (!rolesInRoom['bellhop'] || rolesInRoom['bellhop'].length <= 0)
+      && (!rolesInRoom['labourer'] || rolesInRoom['labourer'].length <= 0)) {
+      maxEnergy = room.energyAvailable;
     }
-    
+
+    var segment = [CARRY,CARRY,MOVE];
+    var body = [];
+    var segmentCost = _.sum(segment, (p) => BODYPART_COST[p]);
+
+    do {
+      body = body.concat(segment);
+      maxEnergy -= segmentCost;
+    } while (maxEnergy - segmentCost > 0 && (body.length + segment.length) <= MAX_CREEP_SIZE)
+
+    return body;    
   },
 
   getQuota: function(room) {

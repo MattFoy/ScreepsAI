@@ -5,7 +5,7 @@ function processLabs(room) {
     return s.structureType === STRUCTURE_LAB
   }});
 
-  if (labs.length > 0) {
+  if (labs.length > 4) {
     if (!room.memory.science) {
       room.memory.science = {};
     }
@@ -66,7 +66,7 @@ function processLabs(room) {
       }
     }
 
-    if (room.memory.science.inputLabs.length !== 2) {
+    if (!room.memory.science.inputLabs || (room.memory.science.inputLabs && room.memory.science.inputLabs.length !== 2)) {
       let availableLabs = labs;
       if (room.memory.science.boosts) {
         availableLabs = _.filter(labs, (l) => _.filter(room.memory.science.boosts, (id) => id === l.id).length === 0);
@@ -84,7 +84,7 @@ function processLabs(room) {
       });
     }
 
-    if (room.memory.science.inputLabs.length === 2) {
+    if (room.memory.science.inputLabs && room.memory.science.inputLabs.length === 2) {
       //room.visual.text('i',)
       let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
       let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
@@ -95,8 +95,8 @@ function processLabs(room) {
       delete room.memory.science.reaction;
       switch (room.name) {
         case 'W82S43':
-          room.memory.science.resource1 = RESOURCE_HYDROGEN;
-          room.memory.science.resource2 = RESOURCE_OXYGEN;
+          room.memory.science.resource1 = RESOURCE_UTRIUM_HYDRIDE;
+          room.memory.science.resource2 = RESOURCE_HYDROXIDE;
           break
         case 'W83S43':
           room.memory.science.resource1 = RESOURCE_HYDROGEN;

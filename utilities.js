@@ -604,8 +604,8 @@ function setupTerminalTradingPlan(room) {
         room.memory.tradingPlan.resourceQuantities[resource] = 0;
       }
     }
-    room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.min(room.storage.store.energy, 40000);
-    if (room.storage && room.storage.store[RESOURCE_ENERGY] > 500000) {
+    room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.max(Math.min(room.storage.store.energy - 50000, 50000), 5000);
+    if (room.storage && room.storage.store[RESOURCE_ENERGY] + (room.terminal.store.energy ? room.terminal.store.energy : 0) > 500000) {
       room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = 100000;
     }
 

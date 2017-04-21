@@ -17,7 +17,7 @@ let roleChemist = {
       creep.memory.returnToOrigin = true;
     } else { 
       if (creep.memory.sleepUntil && creep.memory.sleepUntil - Game.time >= 0) {
-        creep.say('Zzz');
+        creep.say('Zzz', true);
         creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 1); 
         return;
       } else {
@@ -34,7 +34,7 @@ let roleChemist = {
 
       runChemistTask(creep);
 
-      creep.say('chem');
+      //creep.say('chem');
     }    
   }, 'run:chemist'),
 
@@ -49,7 +49,7 @@ let roleChemist = {
 
   getQuota: function(room) {
     return ((room.controller && room.controller.my && room.controller.level >= 7 && room.memory.science 
-      && ((room.memory.science.inputLabs && room.memory.science.inputLabs.length > 0)
+      && ((room.memory.science.inputLabs && room.memory.science.inputLabs.length > 0 && room.memory.science.resource1 && room.memory.science.resource2)
         || (room.memory.science.boosts)))
       ? 1 
       : 0);
@@ -229,7 +229,7 @@ function getChemistTask(creep) {
           return;
         }
       }
-      if (creep.room.memory.science.inputLabs.indexOf(lab.id) > -1) {
+      if (creep.room.memory.science.inputLabs && creep.room.memory.science.inputLabs.indexOf(lab.id) > -1) {
         // I
       } else { 
         // O

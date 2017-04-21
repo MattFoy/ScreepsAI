@@ -67,50 +67,59 @@ let roleSmartHauler = {
           console.log(creep.name + ' has no storage? ' + creep.memory.origin);
           creep.memory.role = 'suicide';
         } else {
-          if (creep.room.name === storage.pos.roomName && creep.pos.getRangeTo(storage) <= 1) {
-            for(var resourceType in creep.carry) {
-              if (creep.transfer(storage, resourceType) === ERR_FULL || _.sum(storage.store) + _.sum(creep.carry) > storage.storeCapacity) {
-                for (var res in creep.carry) {
-                  creep.drop(res);
-                }
+          for(var resourceType in creep.carry) {
+            if (!creep.carry[resourceType]) { continue; }
+            let result = creep.transfer(storage, resourceType);
+            if (result === ERR_NOT_IN_RANGE) {
+              creep.travelTo(storage, {range: 1});
+            }
+            if (result === ERR_FULL || _.sum(storage.store) + _.sum(creep.carry) > storage.storeCapacity) {
+              for (var res in creep.carry) {
+                creep.drop(res);
               }
             }
-          } else {
-            creep.travelTo(storage, {range: 1});
+            break;
           }
           task = "Stor";
         }
-      }
-      else {
+      } else {
         if (!creep.memory.intendedSource && !creep.memory.haulingResources) {
           //console.log('considering target sources...')
           let origin = Game.rooms[creep.memory.origin];
 
-          let resourceContainers = origin.find(FIND_STRUCTURES, { filter: (s) => (
-            s.structureType === STRUCTURE_CONTAINER
-            && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
-            && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
-          ) });
-          for (var i = 0; i < origin.memory.responsibleForRooms.length; i++) {
-            let rRoom = Game.rooms[origin.memory.responsibleForRooms[i]];
-            if (rRoom) {
-              resourceContainers = resourceContainers.concat(rRoom.find(FIND_STRUCTURES, { filter: (s) => (
+          if (origin.controller.level >= 6) {
+            let resourceContainers = [];
+            
+            if (!GameState.cachedResourceContainers) { GameState.cachedResourceContainers = {}; }
+            
+            if (!GameState.cachedResourceContainers[creep.memory.origin]) {
+              resourceContainers = resourceContainers.concat(origin.find(FIND_STRUCTURES, { filter: (s) => (
                 s.structureType === STRUCTURE_CONTAINER
                 && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
                 && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
               ) }));
-            }
-          }
 
-          // crude magic number hack for now... should probably get a better linear distance calculator...
-          if (resourceContainers.length > 0 && creep.ticksToLive > 400) {
-            //console.log('resources waiting...');
-            let target = resourceContainers[0];
-            JSON.stringify(resourceContainers);
-            if (target) {
-              //console.log("Resources found in " + JSON.stringify(target) + " in container " + target.id);
+              for (var i = 0; i < origin.memory.responsibleForRooms.length; i++) {
+                let rRoom = Game.rooms[origin.memory.responsibleForRooms[i]];
+                if (rRoom) {
+                  resourceContainers = resourceContainers.concat(rRoom.find(FIND_STRUCTURES, { filter: (s) => (
+                    s.structureType === STRUCTURE_CONTAINER
+                    && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
+                    && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
+                  ) }));
+                }
+              }
+              GameState.cachedResourceContainers[creep.memory.origin] = resourceContainers;
+            } else {
+              resourceContainers = GameState.cachedResourceContainers[creep.memory.origin];
+            }
+
+            if (resourceContainers && resourceContainers.length > 0 && creep.ticksToLive > 400) {
+              let target = resourceContainers[0];
               if (target) {
-                creep.memory.haulingResources = target.id;
+                if (target) {
+                  creep.memory.haulingResources = target.id;
+                }
               }
             }
           }

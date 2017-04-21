@@ -48,32 +48,32 @@ const traveler = require('traveler');
 
 const resources = require('resources');
 
-//profiler.enable();
+profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
 
   utilities.initGameState();
+  
   utilities.pruneMemory();
 
-  try {
-    let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
-    observer.observeRoom('W86S41');
-  } catch (e) { }
-  try {
-    let observer2 = Game.getObjectById('58ed94cff06118c86d8f96c5');
-    observer2.observeRoom('W88S38');
-  } catch (e) { }
-
-  modules.processSquads();
+//   try {
+//     let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
+//     observer.observeRoom('W86S41');
+//   } catch (e) { }
+//   try {
+//     let observer2 = Game.getObjectById('58ed94cff06118c86d8f96c5');
+//     observer2.observeRoom('W88S38');
+//   } catch (e) { }
 
   console.log(' ============================== Tick# ' + Game.time 
     + ', CPU: ' + Game.cpu.limit + ', ' + Game.cpu.tickLimit + ', ' + Game.cpu.bucket 
     + ' ============================== ');
   
+  modules.processSquads();
   modules.processCreeps();
 
-  if (Game.time % 15 === 1) {
+  if (Game.time % 25 === 1) {
     console.log("Generating build queue");
     Memory.empire.buildQueues = {};
   }
@@ -111,7 +111,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       modules.processTowers(room);
       modules.processLinks(room);
 
-      if (Game.time % 10 === 7 && Game.cpu.bucket > 9000) {
+      if (Game.time % 10 === 7 && Game.cpu.bucket > 5000) {
         modules.processLabs(room);
         //console.log(Game.cpu.getUsed());
       }
@@ -191,6 +191,20 @@ module.exports.loop = function () { profiler.wrap(function() {
   if (Memory.empire.helpRequired > 0) {
     Memory.empire.helpRequired -= 
       Game.spawnHelpFor('W88S36', 1, 'builder');
+  }
+  
+  if (Game.time % 17 == 5) {
+    if (Game.rooms.W83S43 && Game.rooms.W83S43.terminal && Game.rooms.W83S43.terminal.store[RESOURCE_UTRIUM_HYDRIDE] && Game.rooms.W83S43.terminal.store[RESOURCE_UTRIUM_HYDRIDE] >= 1000) {
+      try {
+        Game.rooms.W83S43.terminal.send(RESOURCE_UTRIUM_HYDRIDE, 1000, 'W82S43');
+      } catch (e) { }
+    }
+    
+    if (Game.rooms.W82S43 && Game.rooms.W82S43.terminal && Game.rooms.W82S43.terminal.store[RESOURCE_UTRIUM_ACID] && Game.rooms.W82S43.terminal.store[RESOURCE_UTRIUM_ACID] >= 1000) {
+      try {
+        Game.rooms.W82S43.terminal.send(RESOURCE_UTRIUM_ACID, 1000, 'W85S41');
+      } catch (e) { }
+    }
   }
 
 });}

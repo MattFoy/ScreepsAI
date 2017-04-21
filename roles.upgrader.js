@@ -18,7 +18,7 @@ let roleUpgrader = {
     if(creep.memory.upgrading) {
       creep.goUpgrade();
     } else {
-      if (creep.room.memory.sweetUpgrades) {
+      if (creep.room.memory.sweetUpgrades && creep.memory.inUpgradeSweetSpot) {
         creep.goUpgrade();
       } else {
         creep.goGetEnergy(false, true);

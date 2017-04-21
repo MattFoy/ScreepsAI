@@ -96,7 +96,7 @@ function summarize_room_internal(room) {
     const mineral_amount = mineral ? mineral.mineralAmount : 0;
     const extractors = room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_EXTRACTOR });
     const num_extractors = extractors.length;
-    const creeps = _.filter(Game.creeps, c => c.pos.roomName == room.name && c.my);
+    const creeps = _.filter(Game.creeps, c => c.memory.origin == room.name && c.my);
     const num_creeps = creeps ? creeps.length : 0;
     const enemy_creeps = room.find(FIND_HOSTILE_CREEPS);
     const creep_energy = _.sum(Game.creeps, c => c.pos.roomName == room.name ? c.carry.energy : 0);

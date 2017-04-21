@@ -19,7 +19,7 @@ function processSpawning(room) {
         : 0);
       let quota = roles[roleName].getQuota(room, rolesInRoom);
       if (count < quota) {
-        let body = roles[roleName].determineBodyParts(room);
+        let body = roles[roleName].determineBodyParts(room, rolesInRoom);
         spawnQueue.push({ memory: {origin: room.name, role: roleName}, body: body });
       }
     } else if (roles[roleName].spawnType === 'reservation') {

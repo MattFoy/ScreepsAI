@@ -101,16 +101,39 @@ module.exports = function() {
           //console.log('wtf: ' + JSON.stringify(pos));
           return pos.getRangeTo(creep) === 0;
         }); 
-
-        if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
+        
+        if (idealSpotsWeOccupy.length >= 1 && idealPositions.length > 0) {
+            this.memory.inUpgradeSweetSpot = true;
+            this.upgradeController(controller);
+        } else if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
           //console.log(JSON.stringify(idealPositions[0]));
           let idealRoomPositions = _.map(idealPositions, (iPos) => 
             Game.rooms[iPos.roomName].getPositionAt(iPos.x, iPos.y));
-          let roomPos = this.pos.findClosestByPath(idealRoomPositions);;
-          //console.log(JSON.stringify(roomPos));
-          this.travelTo(roomPos, {range: 0, ignoreCreeps: false});
-        }
+          let roomPos = this.pos.findClosestByPath(idealRoomPositions);
+          if (roomPos) {
+            this.travelTo(roomPos, {range: 0, ignoreCreeps: false});
+          } else {
+            this.memory.inUpgradeSweetSpot = false;
+            if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+              this.travelTo(controller, { range: 3, ignoreCreeps: false });
+            } else {
+              if (this.pos.getRangeTo(controller) > 1) {
+                this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
+              }
+            }
+          }
+        } else {
+            this.memory.inUpgradeSweetSpot = false;
+            if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+              this.travelTo(controller, { range: 3, ignoreCreeps: false });
+            } else {
+              if (this.pos.getRangeTo(controller) > 1) {
+                this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
+              }
+            }
+          }
       } else {
+        this.memory.inUpgradeSweetSpot = false;
         if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
           this.travelTo(controller, { range: 3, ignoreCreeps: false });
         } else {

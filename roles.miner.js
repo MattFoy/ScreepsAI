@@ -56,14 +56,19 @@ let roleMiner = {
 
         if (creep.memory.sourceId) {
           let source = Game.getObjectById(creep.memory.sourceId);
-          if (creep.harvest(source) == ERR_NOT_ENOUGH_RESOURCES) {
-            return;           
-            if (!creep.memory.interimBuild || !creep.memory.interimBuild.time
-              || Game.time - creep.memory.interimBuild.time > 1 ) {
+          if (source.energy > 0) {
+            creep.say('Mining');
+            creep.harvest(source); 
+          } else if (source.ticksToRegeneration > 8) {
+            creep.say('Repair');
+            if (!creep.memory.interimBuild || (creep.memory.interimBuild.sleepUntil 
+              && Game.time - creep.memory.sleepUntil > 0 )) {
               creep.memory.interimBuild = {}
-              creep.memory.interimBuild.time = Game.time;
 
-              let target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, 3);
+              let target;
+              let constructionSites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
+              if (constructionSites.length > 0) { target = constructionSites[0]; }
+
               if(target) {
                 creep.memory.interimBuild.target = target.id;
                 creep.memory.interimBuild.mode = 'b';
@@ -83,7 +88,7 @@ let roleMiner = {
               }
 
               if (!creep.memory.interimBuild.target) {
-                creep.memory.interimBuild.time = Game.time + source.ticksToRegeneration + 5;
+                creep.memory.interimBuild.sleepUntil = Game.time + source.ticksToRegeneration + 1;
               } 
             }
 
@@ -91,7 +96,9 @@ let roleMiner = {
               creep.tryToPickUp();
             }
 
-            if (creep.memory.interimBuild) {
+            if (creep.memory.interimBuild 
+              && creep.memory.interimBuild.target
+              && creep.memory.interimBuild.mode) {
               let target = Game.getObjectById(creep.memory.interimBuild.target);
               if (target) {
                 if (creep.memory.interimBuild.mode === 'b') {

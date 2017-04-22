@@ -149,7 +149,7 @@ let roleBellhop = {
         creep.memory.bellhopTask = 'upgraders';
       } else {
         creep.memory.bellhopTask = 'idle';
-        console.log('bellhop nothing to do');
+        //console.log('bellhop nothing to do');
         creep.memory.idleTimeout = Game.time + 5;
       }
     }
@@ -413,7 +413,7 @@ let roleBellhop = {
       } 
     }
 
-    creep.say(creep.memory.bellhopTask);
+    //creep.say(creep.memory.bellhopTask);
   }, 'run:bellhop'),
 
   determineBodyParts: function(room, rolesInRoom) {

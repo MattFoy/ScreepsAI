@@ -83,35 +83,49 @@ module.exports = function() {
           this.upgradeController(controller);
         }
 
-        if (this.room.memory.sweetUpgrades) {
+        if (this.room.memory.sweetUpgrades 
+          && this.carry[RESOURCE_ENERGY] < _.filter(this.body, (b) => b.type === WORK).length) {
           let container = Game.getObjectById(this.room.memory.sweetUpgrades);
           if (container && this.pos.getRangeTo(container) <= 1) {
             this.withdraw(container, RESOURCE_ENERGY);
           }
         }
-        let creep = this;
+        if (this.memory.inUpgradeSweetSpot) {
+          this.upgradeController(controller);
+        } else {
+          let creep = this;
 
-        idealPositions = _.filter(
-          _.map(idealPositions, function(pos) { 
-            return creep.room.getPositionAt(pos.x, pos.y);
-          })
-          , (pos) => pos.isPathable(false, creep));
+          idealPositions = _.filter(
+            _.map(idealPositions, function(pos) { 
+              return creep.room.getPositionAt(pos.x, pos.y);
+            })
+            , (pos) => pos.isPathable(false, creep));
 
-        let idealSpotsWeOccupy = _.filter(idealPositions, function(pos) { 
-          //console.log('wtf: ' + JSON.stringify(pos));
-          return pos.getRangeTo(creep) === 0;
-        }); 
-        
-        if (idealSpotsWeOccupy.length >= 1 && idealPositions.length > 0) {
-            this.memory.inUpgradeSweetSpot = true;
-            this.upgradeController(controller);
-        } else if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
-          //console.log(JSON.stringify(idealPositions[0]));
-          let idealRoomPositions = _.map(idealPositions, (iPos) => 
-            Game.rooms[iPos.roomName].getPositionAt(iPos.x, iPos.y));
-          let roomPos = this.pos.findClosestByPath(idealRoomPositions);
-          if (roomPos) {
-            this.travelTo(roomPos, {range: 0, ignoreCreeps: false});
+          let idealSpotsWeOccupy = _.filter(idealPositions, function(pos) { 
+            //console.log('wtf: ' + JSON.stringify(pos));
+            return pos.getRangeTo(creep) === 0;
+          }); 
+          
+          if (idealSpotsWeOccupy.length >= 1 && idealPositions.length > 0) {
+              this.memory.inUpgradeSweetSpot = true;
+              this.upgradeController(controller);
+          } else if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
+            //console.log(JSON.stringify(idealPositions[0]));
+            let idealRoomPositions = _.map(idealPositions, (iPos) => 
+              Game.rooms[iPos.roomName].getPositionAt(iPos.x, iPos.y));
+            let roomPos = this.pos.findClosestByPath(idealRoomPositions);
+            if (roomPos) {
+              this.travelTo(roomPos, {range: 0, ignoreCreeps: true});
+            } else {
+              this.memory.inUpgradeSweetSpot = false;
+              if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+                this.travelTo(controller, { range: 3, ignoreCreeps: false });
+              } else {
+                if (this.pos.getRangeTo(controller) > 1) {
+                  this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
+                }
+              }
+            }
           } else {
             this.memory.inUpgradeSweetSpot = false;
             if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
@@ -122,16 +136,7 @@ module.exports = function() {
               }
             }
           }
-        } else {
-            this.memory.inUpgradeSweetSpot = false;
-            if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-              this.travelTo(controller, { range: 3, ignoreCreeps: false });
-            } else {
-              if (this.pos.getRangeTo(controller) > 1) {
-                this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
-              }
-            }
-          }
+        }
       } else {
         this.memory.inUpgradeSweetSpot = false;
         if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
@@ -648,17 +653,23 @@ module.exports = function() {
     if (target) {
       // we want to stay withing 3 tiles of the target, while being off the road
       if (this.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+        let safeSpots = [];
         for (var x = Math.max(1, target.pos.x - 3); x <= Math.min(48, target.pos.x + 3); x++) {
           for (var y = Math.max(1, target.pos.y - 3); y <= Math.min(48, target.pos.y + 3); y++) {
             let pos = this.room.getPositionAt(x, y);
             if (pos.lookFor(LOOK_STRUCTURES).length === 0 && pos.isPathable()) {
               this.room.visual.text('o', pos);
+              safeSpots.push(pos);
               if (pos.getRangeTo(this) <= 1) {
                 this.moveTo(pos);
                 return;
               }
             }
           }
+        }
+        if (safeSpots.length > 0) {
+          this.moveTo(this.pos.findClosestByPath(safeSpots));
+          return;
         }
       }
     } else {

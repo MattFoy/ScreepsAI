@@ -21,12 +21,9 @@ let roleMiner = {
         return;
       }
 
-      if (creep.room.name === flag.pos.roomName && creep.pos.getRangeTo(flag) < 2) {
-        if (!creep.memory.sourceReached) {
-          creep.memory.sourceReached = true;
-          creep.memory.replaceBefore = (creep.body.length * 3) + creep.memory.ticksToSource;
-          //console.log(creep.memory.replaceBefore);
-        }
+      if (!creep.memory.sourceReached && creep.room.name === flag.pos.roomName && creep.pos.getRangeTo(flag) < 2) {
+        creep.memory.sourceReached = true;
+        creep.memory.replaceBefore = (creep.body.length * 3) + creep.memory.ticksToSource;
       }
 
       if (!(creep.room.name === flag.pos.roomName && creep.pos.x === flag.pos.x && creep.pos.y === flag.pos.y)) {
@@ -58,7 +55,9 @@ let roleMiner = {
         }
 
         if (creep.memory.sourceId) {
-          if (creep.harvest(Game.getObjectById(creep.memory.sourceId)) == ERR_NOT_ENOUGH_RESOURCES) {
+          let source = Game.getObjectById(creep.memory.sourceId);
+          if (creep.harvest(source) == ERR_NOT_ENOUGH_RESOURCES) {
+            return;           
             if (!creep.memory.interimBuild || !creep.memory.interimBuild.time
               || Game.time - creep.memory.interimBuild.time > 1 ) {
               creep.memory.interimBuild = {}
@@ -84,7 +83,7 @@ let roleMiner = {
               }
 
               if (!creep.memory.interimBuild.target) {
-                creep.memory.interimBuild.time = Game.time + 10;
+                creep.memory.interimBuild.time = Game.time + source.ticksToRegeneration + 5;
               } 
             }
 

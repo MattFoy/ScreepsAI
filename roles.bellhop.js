@@ -150,7 +150,7 @@ let roleBellhop = {
       } else {
         creep.memory.bellhopTask = 'idle';
         console.log('bellhop nothing to do');
-        creep.memory.idleTimeout = Game.time + 10;
+        creep.memory.idleTimeout = Game.time + 5;
       }
     }
 

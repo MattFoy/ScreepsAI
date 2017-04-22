@@ -110,7 +110,7 @@ module.exports.loop = function () { profiler.wrap(function() {
 
       utilities.calculateHaulingEconomy(room);
       
-      if (Game.time % 3 === 2) {
+      if (Game.time % 5 === 2) {
         utilities.calculateDefense(room);
       }
       
@@ -127,11 +127,11 @@ module.exports.loop = function () { profiler.wrap(function() {
         //console.log(Game.cpu.getUsed());
       }
 
-      if (Game.time % 5 === 2) {
+      if (Game.time % 7 === 2) {
         modules.processSpawning(room);
         //console.log(Game.cpu.getUsed());
       }
-      if (Game.time % 6 === 2 && Game.cpu.bucket > 2000) {
+      if (Game.time % 8 === 2 && Game.cpu.bucket > 2000) {
         utilities.setupTerminalTradingPlan(room);
       }
 
@@ -217,7 +217,7 @@ module.exports.loop = function () { profiler.wrap(function() {
   }
 
   if (!Memory.empire.helpRequired) { Memory.empire.helpRequired = 0; }
-  if (Game.time % 750 === 333) { Memory.empire.helpRequired++; }
+  //if (Game.time % 750 === 333) { Memory.empire.helpRequired++; }
   if (Memory.empire.helpRequired > 0) {
     Memory.empire.helpRequired -= 
       Game.spawnHelpFor('W88S36', 1, 'builder');

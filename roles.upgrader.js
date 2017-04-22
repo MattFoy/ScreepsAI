@@ -8,26 +8,33 @@ let roleUpgrader = {
 
   /** @param {Creep} creep **/
   run: profiler.registerFN(function(creep) {
-    if(creep.memory.upgrading && creep.carry.energy == 0) {
+    if(creep.memory.upgrading && creep.carry.energy < _.filter(creep.body, (b) => b.type === WORK).length) {
       creep.memory.upgrading = false;
     }
-    if(!creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
+    if(!creep.memory.upgrading && creep.carry.energy >= _.filter(creep.body, (b) => b.type === WORK).length) {
       creep.memory.upgrading = true;
     }
 
     if(creep.memory.upgrading) {
       creep.goUpgrade();
     } else {
-      if (creep.room.memory.sweetUpgrades && creep.memory.inUpgradeSweetSpot) {
+      if (creep.memory.inUpgradeSweetSpot) {
         creep.goUpgrade();
+      } else if (creep.room.memory.sweetUpgrades) {
+        let target = Game.getObjectById(creep.room.memory.sweetUpgrades);
+        if (creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+          creep.travelTo(target, { range: 1 });
+        }
       } else {
         creep.goGetEnergy(false, true);
       }
     }
-    if (!Game.rooms[creep.memory.origin].controller.sign 
-      || Game.rooms[creep.memory.origin].controller.sign.text !== GameState.signMessages['upgrader']) {
-      if (creep.signController(Game.rooms[creep.memory.origin].controller, GameState.signMessages['upgrader'])) {
-        creep.moveTo(Game.rooms[creep.memory.origin].controller);
+    if (Game.time % 100 === 13) {
+      if (!Game.rooms[creep.memory.origin].controller.sign 
+        || Game.rooms[creep.memory.origin].controller.sign.text !== GameState.signMessages['upgrader']) {
+        if (creep.signController(Game.rooms[creep.memory.origin].controller, GameState.signMessages['upgrader'])) {
+          creep.moveTo(Game.rooms[creep.memory.origin].controller);
+        }
       }
     }
   }, 'run:upgrader'),
@@ -35,7 +42,7 @@ let roleUpgrader = {
   determineBodyParts: function(room) {
     let maxEnergy = room.energyCapacityAvailable;
     if (room.controller.level === 8) {
-      return [WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY];
+      return [WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY];
     } else {
       if (room.memory.sweetUpgrades) {
         let maxEnergy = room.energyCapacityAvailable;

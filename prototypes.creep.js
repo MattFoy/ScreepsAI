@@ -181,6 +181,8 @@ module.exports = function() {
       let target = Game.getObjectById(this.memory.reinforce.targetID);
       if (this.repair(target) === ERR_NOT_IN_RANGE) {
         this.travelTo(target, { range: 3 });
+      } else {
+        this.getOutOfTheWay(target);
       }
       return true;
     }
@@ -638,6 +640,31 @@ module.exports = function() {
     if (this.heal(target) == ERR_NOT_IN_RANGE) {
       if (this.rangedHeal(target) == ERR_NOT_IN_RANGE) {
         this.moveTo(target);
+      }
+    }
+  }
+
+  Creep.prototype.getOutOfTheWay = function(target) {
+    if (target) {
+      // we want to stay withing 3 tiles of the target, while being off the road
+      if (this.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+        for (var x = Math.max(1, target.pos.x - 3); x <= Math.min(48, target.pos.x + 3); x++) {
+          for (var y = Math.max(1, target.pos.y - 3); y <= Math.min(48, target.pos.y + 3); y++) {
+            let pos = this.room.getPositionAt(x, y);
+            if (pos.lookFor(LOOK_STRUCTURES).length === 0 && pos.isPathable()) {
+              this.room.visual.text('o', pos);
+              if (pos.getRangeTo(this) <= 1) {
+                this.moveTo(pos);
+                return;
+              }
+            }
+          }
+        }
+      }
+    } else {
+      this.say('Zzz', true);
+      if (this.pos.lookFor(LOOK_STRUCTURES).length > 0) {
+        this.fleeFrom(this.room.find(FIND_STRUCTURES), 1); 
       }
     }
   }

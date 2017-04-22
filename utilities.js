@@ -494,8 +494,6 @@ function initGameState() {
   GameState.cpuUsedToLoad = Game.cpu.getUsed();
 
   if (!Memory.empire) { Memory.empire = {}; }
-  
-  //console.log(GameState.cpuUsedToLoad);
 
   RawMemory.setActiveSegments([
     GameState.constants.MEMORY_CRITICAL, 
@@ -530,10 +528,6 @@ function initGameState() {
 
   if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads) {
     GameState.memory[GameState.constants.MEMORY_CRITICAL].defenseSquads = {};
-  }
-  
-  if (!GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads) {
-    GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads = {};
   }
 
   if (!GameState.signMessages) { GameState.signMessages = {}; }
@@ -591,17 +585,20 @@ function setupTerminalTradingPlan(room) {
 
     for (var resourceIdx in RESOURCES_ALL) {
       let resource = RESOURCES_ALL[resourceIdx];
-      let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0);
-      let terminalAmount = 0;
-      if (room.terminal.store[resource]) {
-        terminalAmount = room.terminal.store[resource];
-      }
+      let qtyAvailable = (room.storage.store[resource] ? room.storage.store[resource] : 0)
+        + (room.terminal.store[resource] ? room.terminal.store[resource] : 0);
+
       if (qtyAvailable > 100000) {
-        room.memory.tradingPlan.resourceQuantities[resource] = Math.min(100000, (terminalAmount + qtyAvailable) - 100000);
+        // When we have more than 100k resources available, 
+        // store everything over the first 50k in the terminal, 
+        // up to a max of 100k
+        room.memory.tradingPlan.resourceQuantities[resource] = Math.min(100000, qtyAvailable - 50000);
       } else if (qtyAvailable > 5000) {
+        // if we have more than 5000, but less than 100000, then store 5k in the terminal
         room.memory.tradingPlan.resourceQuantities[resource] = 5000;
       } else {
-        room.memory.tradingPlan.resourceQuantities[resource] = 0;
+        // store the "bits and pieces" in the terminal so we can get rid of leftover, for example
+        room.memory.tradingPlan.resourceQuantities[resource] = qtyAvailable;
       }
     }
     room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY] = Math.max(Math.min(room.storage.store.energy - 50000, 50000), 5000);

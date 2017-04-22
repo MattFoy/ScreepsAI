@@ -108,14 +108,17 @@ let roleBellhop = {
       let terminalNeedsEnergyDraining = false;
       let terminalNeedsResourceDraining = false;
       if (creep.room.storage && creep.room.terminal && creep.room.memory.tradingPlan) {
-        if (creep.room.terminal.store[RESOURCE_ENERGY] - 2000 > creep.room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY]) {
+        if (creep.room.terminal.store[RESOURCE_ENERGY] - 1600 
+          > creep.room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY]) {
           terminalNeedsEnergyDraining = true;
         }
 
         for (var resource in creep.room.terminal.store) {
           if (resource === RESOURCE_ENERGY) { continue; }
-          if (creep.room.terminal.store[resource] && creep.room.memory.tradingPlan.resourceQuantities[resource] 
-            && creep.room.terminal.store[resource] > creep.room.memory.tradingPlan.resourceQuantities[resource]) {
+          if (creep.room.terminal.store[resource] 
+            && creep.room.memory.tradingPlan.resourceQuantities[resource] 
+            && (creep.room.terminal.store[resource] - 1600)
+              > creep.room.memory.tradingPlan.resourceQuantities[resource]) {
             //console.log(resource + ': ' + creep.room.terminal.store[resource] + ', > ' + creep.room.memory.tradingPlan.resourceQuantities[resource]);
             terminalNeedsResourceDraining = true;
           }
@@ -405,7 +408,7 @@ let roleBellhop = {
             creep.travelTo(droppedEnergy[0], { range: 1 });
           }
         } else {
-          creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 1); 
+          creep.getOutOfTheWay();
         }        
       } 
     }

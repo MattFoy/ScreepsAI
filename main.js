@@ -45,6 +45,7 @@ const modules = require('modules');
 const utilities = require('utilities');
 const roles = require('roles');
 const traveler = require('traveler');
+const SCM = require('_SupplyChainManagement');
 
 const resources = require('resources');
 
@@ -52,25 +53,35 @@ profiler.enable();
 
 module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
+  require('campaigns')();
 
   utilities.initGameState();
   
   utilities.pruneMemory();
 
-//   try {
-//     let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
-//     observer.observeRoom('W86S41');
-//   } catch (e) { }
+  try {
+    let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
+    observer.observeRoom('W82S38');
+  } catch (e) { }
 //   try {
 //     let observer2 = Game.getObjectById('58ed94cff06118c86d8f96c5');
 //     observer2.observeRoom('W88S38');
 //   } catch (e) { }
 
-  console.log(' ============================== Tick# ' + Game.time 
-    + ', CPU: ' + Game.cpu.limit + ', ' + Game.cpu.tickLimit + ', ' + Game.cpu.bucket 
+  console.log(' ============================== ' 
+    + 'Tick# ' + Game.time 
+    + ', CPU: ' 
+    + Game.cpu.limit + ', ' 
+    + Game.cpu.tickLimit + ', ' 
+    + Game.cpu.bucket 
     + ' ============================== ');
   
-  modules.processSquads();
+  if (Memory.empire && Memory.empire.campaigns) {
+    for (let campaignName in Memory.empire.campaigns) {
+      Game.campaigns.process(campaignName);
+    }
+  }
+
   modules.processCreeps();
 
   if (Game.time % 25 === 1) {
@@ -120,10 +131,29 @@ module.exports.loop = function () { profiler.wrap(function() {
         modules.processSpawning(room);
         //console.log(Game.cpu.getUsed());
       }
-      if (Game.time % 6 === 2 && Game.cpu.bucket > 9000) {
+      if (Game.time % 6 === 2 && Game.cpu.bucket > 2000) {
         utilities.setupTerminalTradingPlan(room);
       }
 
+      if (Game.time % 17 === 0 && Game.cpu.bucket > 5000) {
+        if (room.terminal && SCM.terminalSends[roomName]) {
+          for (let targetRoomName in SCM.terminalSends[roomName]) {
+            let targetRoom = Game.rooms[targetRoomName];
+            if (targetRoom && targetRoom.terminal && SCM.terminalSends[roomName][targetRoomName] 
+              && SCM.terminalSends[roomName][targetRoomName].length > 0) {
+              SCM.terminalSends[roomName][targetRoomName].forEach(function(resourceType) {
+                let sendAmount = Math.min(5000, (room.terminal.store[resourceType] ? room.terminal.store[resourceType] : 0));
+                if (room.terminal.store[resourceType] && room.terminal.store[resourceType] >= sendAmount
+                  && _.sum(targetRoom.terminal.store) < targetRoom.terminal.storeCapacity - sendAmount) {
+                  console.log("Sending " + resourceType + " from " + roomName + ' to ' + targetRoomName);
+                  console.log(room.terminal.send(resourceType, sendAmount, targetRoomName));
+                }
+              });
+            }
+          }
+        }
+      }
+    
       if (Game.cpu.bucket > 9000 
         && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
         && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
@@ -191,20 +221,6 @@ module.exports.loop = function () { profiler.wrap(function() {
   if (Memory.empire.helpRequired > 0) {
     Memory.empire.helpRequired -= 
       Game.spawnHelpFor('W88S36', 1, 'builder');
-  }
-  
-  if (Game.time % 17 == 5) {
-    if (Game.rooms.W83S43 && Game.rooms.W83S43.terminal && Game.rooms.W83S43.terminal.store[RESOURCE_UTRIUM_HYDRIDE] && Game.rooms.W83S43.terminal.store[RESOURCE_UTRIUM_HYDRIDE] >= 1000) {
-      try {
-        Game.rooms.W83S43.terminal.send(RESOURCE_UTRIUM_HYDRIDE, 1000, 'W82S43');
-      } catch (e) { }
-    }
-    
-    if (Game.rooms.W82S43 && Game.rooms.W82S43.terminal && Game.rooms.W82S43.terminal.store[RESOURCE_UTRIUM_ACID] && Game.rooms.W82S43.terminal.store[RESOURCE_UTRIUM_ACID] >= 1000) {
-      try {
-        Game.rooms.W82S43.terminal.send(RESOURCE_UTRIUM_ACID, 1000, 'W85S41');
-      } catch (e) { }
-    }
   }
 
 });}

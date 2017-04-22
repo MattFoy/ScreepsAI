@@ -75,11 +75,15 @@ let roleBuilder = {
               task += "-B";
               if(creep.build(target) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(target, { range: 3 });
+              } else {
+                creep.getOutOfTheWay(target);
               }
             } else if (target instanceof Structure) {
               task += "-R";
               if(creep.repair(target) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(target, { range: 3 });
+              } else {
+                creep.getOutOfTheWay(target);
               }
               if (target.hits >= target.hitsMax || target.hits >= creep.memory.buildOrRepair.amountTotal) {
                 creep.memory.buildOrRepair = null;

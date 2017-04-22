@@ -242,7 +242,11 @@ class Traveler {
       let cpu = Game.cpu.getUsed();
       let ret;
       try {
-        ret = this.findTravelPath(creep, destination, options);
+        if (options.allowedRooms) {
+          ret = options.allowedRooms;
+        } else {
+          ret = this.findTravelPath(creep, destination, options);  
+        }        
       } catch (e) { console.log('EXCEPTION: ' + creep.name + ', ' + creep.memory.role + ', ' + creep.room.name + ', ' + JSON.stringify(destination)); throw e; }
       if (!ret) { return; }
       travelData.cpu += (Game.cpu.getUsed() - cpu);

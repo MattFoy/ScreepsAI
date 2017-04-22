@@ -3,6 +3,5 @@ module.exports = {
   processLinks: require('modules.processLinks'),
   processCreeps: require('modules.processCreeps'),
   processLabs: require('modules.processLabs'),
-  processSpawning: require('modules.processSpawning'),
-  processSquads: require('modules.processSquads')
+  processSpawning: require('modules.processSpawning')
 };

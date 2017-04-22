@@ -1,4 +1,5 @@
 const profiler = require('screeps-profiler');
+const SCM = require('_SupplyChainManagement');
 
 function processLabs(room) {
   let labs = room.find(FIND_STRUCTURES, {filter: function(s) {
@@ -89,29 +90,13 @@ function processLabs(room) {
       let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
       let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
 
-      room.visual.text('i', lab1.pos.x, lab1.pos.y);
-      room.visual.text('i', lab2.pos.x, lab2.pos.y);
-
-      delete room.memory.science.reaction;
-      switch (room.name) {
-        case 'W82S43':
-          room.memory.science.resource1 = RESOURCE_UTRIUM_HYDRIDE;
-          room.memory.science.resource2 = RESOURCE_HYDROXIDE;
-          break
-        case 'W83S43':
-          room.memory.science.resource1 = RESOURCE_HYDROGEN;
-          room.memory.science.resource2 = RESOURCE_UTRIUM;
-          break;
-        case 'W85S41':
-          room.memory.science.resource1 = RESOURCE_UTRIUM_ACID;
-          room.memory.science.resource2 = RESOURCE_CATALYST;
-          break;
-        default:
-          delete room.memory.science.resource1;
-          delete room.memory.science.resource2;
-          break;
+      if (SCM.reactions[room.name] && SCM.reactions[room.name].length === 2) {
+        room.memory.science.resource1 = SCM.reactions[room.name][0];
+        room.memory.science.resource2 = SCM.reactions[room.name][1];
+      } else {
+        delete room.memory.science.resource1;
+        delete room.memory.science.resource2;
       }
-
     }
 
     labs.forEach(function(lab) {

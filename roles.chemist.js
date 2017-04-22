@@ -17,8 +17,7 @@ let roleChemist = {
       creep.memory.returnToOrigin = true;
     } else { 
       if (creep.memory.sleepUntil && creep.memory.sleepUntil - Game.time >= 0) {
-        creep.say('Zzz', true);
-        creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 1); 
+        creep.getOutOfTheWay();
         return;
       } else {
         delete creep.memory.sleepUntil;
@@ -76,6 +75,7 @@ function getChemistTask(creep) {
     creep.memory.role = 'suicide';
     return;
   }
+
   console.log("[Chemist " + creep.name + '] getting task');
   if (creep.room.memory.science) {
     if (!creep.memory.chemistry) { 
@@ -279,6 +279,10 @@ function getChemistTask(creep) {
 
 
   // else...
+  if (!creep.memory.chemistry) { 
+    creep.memory.chemistry = {}; 
+    creep.memory.chemistry.tick = Game.time;
+  }
   creep.memory.chemistry.task = 'idle';
   creep.memory.sleepUntil = Game.time + 27;
   return;

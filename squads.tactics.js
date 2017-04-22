@@ -1,79 +1,9 @@
 require('prototypes')();
 
 module.exports = {	
-	borderHarassmentDismantler: {
-		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
-			let flag = Game.flags[squad.medicTent];
-			if (creep.memory.healing && creep.hits === creep.hitsMax) {
-				creep.memory.healing = false;
-			}
-			if (!creep.memory.healing && creep.hitsMax - creep.hits > 100) {
-				creep.memory.healing = true;
-			}
-
-			if (flag) {
-				if (creep.room.name !== flag.pos.roomName && creep.room.name !== squad.target) {
-					creep.travelTo(flag, {range: 1, allowHostile: true});
-				} else {
-					if (creep.hitsMax - creep.hits > 100) {
-						creep.travelTo(flag, {range: 1, allowHostile: true});
-					} else {
-						if (creep.room.name !== squad.target) {
-							if (Game.rooms[squad.target]) {
-								creep.travelTo(Game.rooms[squad.target].controller, {range: 1, allowHostile: true});
-							} else {
-								creep.travelTo({x:25,y:25,roomName:squad.target}, {range: 1, allowHostile: true});
-							}
-						} else {
-							if (!creep.goDismantle()) {
-			          //creep.moveTo(flag);
-			          // nothing to fight?
-			          console.log('Dismantling done')
-			        } else {
-			          //battleCry = true;
-			          console.log('Dismantling...');
-			        }
-						}
-					}
-				}
-			}
-		}
-	},
-
-	borderHarassmentMedic: {
-		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
-			let flag = Game.flags[squad.medicTent];
-			if (flag) {
-				if (creep.room.name !== flag.pos.roomName || creep.pos.getRangeTo(flag) > 0) {
-					creep.travelTo(flag, {range: 0, allowHostile: true});
-				} else {
-					let woundedCreeps = creep.room.find(FIND_MY_CREEPS, { filter: function(c) {
-						return c.hits < c.hitsMax 
-							&& c.pos.getRangeTo(creep) <= 3;
-					}});
-					woundedCreeps.sort((a,b) => (a.hits / a.hitsMax) - (b.hits / b.hitsMax));
-					if (woundedCreeps.length > 0) {
-						if (creep.heal(woundedCreeps[0]) === ERR_NOT_IN_RANGE) {
-							creep.rangedHeal(woundedCreeps[0]);
-						}
-
-					}
-				}
-			}
-		}
-	},
-	
-	fullScale: {
-		run: function(creep) {
-		
-		}
-	},
-	
 	simpleAttacker: {
 		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
+			let squad = Memory.empire.campaigns[creep.memory.squad];
 			
 			let target;
 			if (creep.memory.target) {
@@ -108,7 +38,7 @@ module.exports = {
 	
 	simpleSaboteur: {
 		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
+			let squad = Memory.empire.campaigns[creep.memory.squad];
 			if (creep.room.name !== squad.target) {
 				if (Game.rooms[squad.target]) {
 					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
@@ -130,7 +60,7 @@ module.exports = {
 
 	simpleMedic: {
 		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
+			let squad = Memory.empire.campaigns[creep.memory.squad];
 			let squadMembers = _.filter(Game.creeps, (c) => c.memory.squad === creep.memory.squad);
 			
 			let woundedSquadMembers = _.filter(squadMembers, (c) => c.hitsMax > c.hits)
@@ -172,7 +102,7 @@ module.exports = {
 
 	saboteurWithMedic: {
 		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
+			let squad = Memory.empire.campaigns[creep.memory.squad];
 			if (creep.room.name !== squad.target) {
 				if (Game.rooms[squad.target]) {
 					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
@@ -206,18 +136,4 @@ module.exports = {
 		}
 	},
 	
-	decoy: {
-		run: function(creep) {
-			let squad = GameState.memory[GameState.constants.MEMORY_CRITICAL].attackSquads[creep.memory.squad];
-			if (creep.room.name !== squad.target) {
-				if (Game.rooms[squad.target]) {
-					creep.travelTo(Game.rooms[squad.target].controller, { range: 1, allowHostile: true });
-				} else {
-					creep.travelTo({x: 25, y: 25, roomName: squad.target}, { allowHostile: true });
-				}
-			} else {
-				creep.moveTo(Game.rooms[squad.target].controller);
-			}
-		}
-	}
 };

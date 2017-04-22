@@ -144,8 +144,7 @@ let roleSmartHauler = {
                 - (creep.carryCapacity - creep.carry.energy);
             } else {
               //console.log("no energy to haul...")
-              creep.say("lame");
-              creep.fleeFrom(creep.room.find(FIND_STRUCTURES), 2);
+              creep.getOutOfTheWay();
             }
           }
         }

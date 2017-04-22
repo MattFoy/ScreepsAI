@@ -36,7 +36,14 @@ module.exports = {
 		{ position: 'simpleSaboteur', body: [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK] }
 	],
 	
-	fullScale: null,
+	testComplexSquad: [
+		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
+		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
+		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
+		{ position: 'squadBodyguard', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(ATTACK)) },
+		{ position: 'simpleMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(HEAL)) },
+		{ position: 'simpleMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(HEAL)) },
+	],
 	
 	smallRaid: [
 		{ position: 'simpleAttacker', body: [ATTACK,ATTACK,ATTACK,ATTACK,MOVE,MOVE,MOVE,MOVE] },
@@ -101,23 +108,4 @@ module.exports = {
 		{ position: 'simpleMedic', boosts: [TOUGH,HEAL], body: [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL] },
 	],
 	
-	test: [
-		{ position: 'decoy', body: [MOVE] }
-	],
-
-	test2: [
-		{ position: 'decoy', body: [MOVE] },
-		{ position: 'decoy', body: [MOVE] },
-		{ position: 'decoy', body: [MOVE] },
-		{ position: 'decoy', body: [MOVE] },
-		{ position: 'decoy', body: [MOVE] },
-	],
-
-	test3: [
-		{ position: 'decoy', body: [TOUGH,MOVE] },
-		{ position: 'decoy', body: [ATTACK,MOVE] },
-		{ position: 'decoy', body: [RANGED_ATTACK,MOVE] },
-		{ position: 'decoy', body: [HEAL,MOVE] },
-		{ position: 'decoy', body: [WORK,MOVE] },
-	]
 };

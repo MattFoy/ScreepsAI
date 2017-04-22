@@ -17,9 +17,9 @@ module.exports = function() {
 
   Room.prototype.getDistanceTo = function(roomName) {
     let thisRoom = this.name;
-    return Game.map.findRoute(thisRoom, Game.rooms[roomName], {
+    return Game.map.findRoute(thisRoom, roomName, {
       routeCallback: (roomName) => {
-        if (Game.map.getRoomLinearDistance(thisRoom, roomName) > 8) {
+        if (Game.map.getRoomLinearDistance(thisRoom, roomName) > 20) {
           return false;
         }
         let parsed;

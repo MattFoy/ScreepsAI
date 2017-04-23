@@ -6,8 +6,12 @@ module.exports = function(room) {
   for(var i = 0; i < room.memory.roleReservables['miner'].length; i++) {
     let flag = Game.flags[room.memory.roleReservables['miner'][i]];
     if (!flag || !flag.room) { 
-      console.log("Could not access " + flag.pos.roomName);
-      continue; 
+      console.log('Hauling economy --> <a href="#!/room/' + flag.pos.roomName + '">' + flag.pos.roomName + '</a> not visible');
+      if (!Memory.empire.observationRequests) { Memory.empire.observationRequests = []; }
+      if (Memory.empire.observationRequests.indexOf(flag.pos.roomName) === -1) {
+        Memory.empire.observationRequests.push(flag.pos.roomName);
+      }
+      continue;
     }
     if (!room.memory.hauling.sourceDetails[flag.name]) { room.memory.hauling.sourceDetails[flag.name] = { name: flag.name, room: flag.pos.roomName } }
     

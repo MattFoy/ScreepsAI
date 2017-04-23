@@ -45,7 +45,9 @@ let roleRoomReserver = {
 
   determineBodyParts: function(room) {
     let maxEnergy = room.energyCapacityAvailable;
-    if (maxEnergy >= 4000) {
+    if (maxEnergy >= 8000) {
+      return [CLAIM,CLAIM,CLAIM,CLAIM,MOVE,MOVE,MOVE,MOVE];
+    } else if (maxEnergy >= 4000) {
       return [CLAIM,CLAIM,CLAIM,MOVE,MOVE,MOVE];
     } else if (maxEnergy >= 1300) {
       return [CLAIM, CLAIM, MOVE, MOVE];

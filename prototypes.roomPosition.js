@@ -59,4 +59,30 @@ module.exports = function() {
     //console.log('[' + this.roomName + '] ' + this.x + ',' + this.y + ': ' + JSON.stringify(pathable));
     return pathable;
   }
+
+  RoomPosition.prototype.getTowerDamage = function() {
+    let room = Game.rooms[this.roomName];
+    let towers = room.find(FIND_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_TOWER });
+
+    let towerDamage = 0;
+    for (var i = 0; i < towers.length; i++) {
+      let tower = towers[i];
+      let distance = this.getRangeTo(tower);
+      //console.log('distance: ' + distance);
+      let damage = 0;
+      if (distance <= TOWER_OPTIMAL_RANGE) {
+        damage = TOWER_POWER_ATTACK;
+      } else if (distance >= TOWER_FALLOFF_RANGE) {
+        damage = TOWER_POWER_ATTACK * (1 - TOWER_FALLOFF);
+      } else {
+        damage = TOWER_POWER_ATTACK * 
+          (1 - ((distance - TOWER_OPTIMAL_RANGE) 
+          * (TOWER_FALLOFF / (TOWER_FALLOFF_RANGE - TOWER_OPTIMAL_RANGE))));
+      }
+      //console.log('Damage: ' + damage);
+      towerDamage += damage;
+    }
+    //console.log('Total: ' + towerDamage);
+    return towerDamage;
+  }
 }

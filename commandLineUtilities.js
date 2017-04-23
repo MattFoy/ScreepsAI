@@ -271,4 +271,31 @@ module.exports = function() {
       );
     }
   }
+
+
+
+
+  Game.towerHeatMap = function(roomName) {
+    let room = Game.rooms[roomName];
+
+    let towers = room.find(FIND_STRUCTURES, { filter: (s) => s.structureType === STRUCTURE_TOWER });
+    let minDamage = towers.length * (TOWER_POWER_ATTACK * (1 - TOWER_FALLOFF));
+    let maxDamage = towers.length * (TOWER_POWER_ATTACK);
+
+    if (room) {
+      for (var x = 1; x <= 48; x++) {
+        for (var y = 1; y <= 48; y++) {
+          let pos = room.getPositionAt(x,y);
+          let towerDamage = pos.getTowerDamage();
+          let damageRatio = (towerDamage - minDamage) / (maxDamage - minDamage).toFixed(2);
+          room.visual.rect(x - 0.5, y - 0.5, 1, 1,
+           { fill: ["hsl(",((1-damageRatio) * 120).toString(10),",100%,50%)"].join(""), opacity: 0.3 });
+          let display = Math.round(towerDamage / 100);
+          room.visual.text(display, x, y, { font: 0.5 });
+        }
+      }
+    }
+  }
+
+
 }

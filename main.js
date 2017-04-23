@@ -59,15 +59,6 @@ module.exports.loop = function () { profiler.wrap(function() {
   
   utilities.pruneMemory();
 
-  try {
-    let observer = Game.getObjectById('58f08eb76409f2b91b4b6395');
-    observer.observeRoom('W82S38');
-  } catch (e) { }
-//   try {
-//     let observer2 = Game.getObjectById('58ed94cff06118c86d8f96c5');
-//     observer2.observeRoom('W88S38');
-//   } catch (e) { }
-
   console.log(' ============================== ' 
     + 'Tick# ' + Game.time 
     + ', CPU: ' 
@@ -122,6 +113,10 @@ module.exports.loop = function () { profiler.wrap(function() {
       modules.processTowers(room);
       modules.processLinks(room);
 
+      if (room.controller.level >= 8) {
+        modules.processObserver(room);
+      }
+
       if (Game.time % 10 === 7 && Game.cpu.bucket > 5000) {
         modules.processLabs(room);
         //console.log(Game.cpu.getUsed());
@@ -143,7 +138,9 @@ module.exports.loop = function () { profiler.wrap(function() {
               && SCM.terminalSends[roomName][targetRoomName].length > 0) {
               SCM.terminalSends[roomName][targetRoomName].forEach(function(resourceType) {
                 let sendAmount = Math.min(5000, (room.terminal.store[resourceType] ? room.terminal.store[resourceType] : 0));
-                if (room.terminal.store[resourceType] && room.terminal.store[resourceType] >= sendAmount
+                if (sendAmount > 0 
+                  && room.terminal.store[resourceType] 
+                  && room.terminal.store[resourceType] >= sendAmount
                   && _.sum(targetRoom.terminal.store) < targetRoom.terminal.storeCapacity - sendAmount) {
                   console.log("Sending " + resourceType + " from " + roomName + ' to ' + targetRoomName);
                   console.log(room.terminal.send(resourceType, sendAmount, targetRoomName));

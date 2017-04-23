@@ -11,7 +11,8 @@ let roleSquaddie = {
   run: profiler.registerFN(function(creep) {
     let campaign = Memory.empire.campaigns[creep.memory.campaign];
     
-    if (campaign && campaign.status && (campaign.status === 'forming' || campaign.status === 'rallying')) {
+    if (campaign && campaign.status 
+      && (campaign.status === 'forming' || campaign.status === 'rallying')) {
       if (creep.room.name !== campaign.rallyPoint.roomName 
         || (creep.pos.getRangeTo(campaign.rallyPoint.x, campaign.rallyPoint.y) >= 1)) {
         creep.travelTo({ pos: campaign.rallyPoint }, {range: 1, allowHostile: true });
@@ -19,17 +20,18 @@ let roleSquaddie = {
         //creep.travelTo(campaign.rallyPoint, {range: 1, ignoreCreeps: false, allowHostile: true })
       }
     } else {
-      let allsWell = true;
       if (!campaign) { 
         console.log('[' + creep.name + '] ' + creep.memory.campaign + ' is invalid campaign?');
         return; 
       } else {
         let squadDetail = _.filter(campaign.squad, (c) => c.name === creep.name)[0];
         if (!squadDetail) { 
-          console.log('[' + creep.name + '] is not in the campaign, ' + creep.memory.campaign + '?');
+          console.log('[' + creep.name + '] is not in the squad for ' + creep.memory.campaign + '?');
           return; 
         } else {
-          squads[squadDetail.position].run(creep);
+          //squads[squadDetail.position].run(creep);
+          // do stuff based on memory?
+          // let the campaign controller decide?
         }
       }
     }
@@ -43,6 +45,8 @@ let roleSquaddie = {
 
     for (var name in Memory.empire.campaigns) {
       if (!Memory.empire.campaigns[name].squad) { continue; }
+      if (Memory.empire.campaigns[name].status !== 'forming') { continue; }
+
       for (var i = 0; i < Memory.empire.campaigns[name].squad.length; i++) {
         let bodyCost = utilities.bodyCost(Memory.empire.campaigns[name].squad[i].body);
         if (!Memory.empire.campaigns[name].squad[i].name 
@@ -94,6 +98,8 @@ let roleSquaddie = {
     let quota = 0;
     for (var name in Memory.empire.campaigns) {
       if (!Memory.empire.campaigns[name].squad) { continue; }
+      if (Memory.empire.campaigns[name].status !== 'forming') { continue; }
+
       if (Memory.empire.campaigns[name].squad) {
         for (var i = 0; i < Memory.empire.campaigns[name].squad.length; i++) {
           let bodyCost = utilities.bodyCost(Memory.empire.campaigns[name].squad[i].body);

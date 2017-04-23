@@ -37,12 +37,14 @@ module.exports = {
 	],
 	
 	testComplexSquad: [
-		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
-		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
-		{ position: 'saboteurWithMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(WORK)) },
-		{ position: 'squadBodyguard', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(ATTACK)) },
-		{ position: 'simpleMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(HEAL)) },
-		{ position: 'simpleMedic', body: Array(5).fill(TOUGH).concat(Array(10).fill(MOVE)).concat(Array(5).fill(HEAL)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+		{ body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
 	],
 	
 	smallRaid: [
@@ -81,11 +83,6 @@ module.exports = {
 
 	wallCleaner: [
 		{ position: 'simpleSaboteur', body: [WORK, MOVE] }
-	],
-
-	testBoostedDuo: [
-		{ position: 'simpleAttacker', boosts: [TOUGH,ATTACK], body: [TOUGH,MOVE,MOVE,ATTACK] },
-		{ position: 'simpleMedic', boosts: [TOUGH,HEAL], body: [TOUGH,MOVE,MOVE,HEAL] },
 	],
 
 	boostedAttacker: [

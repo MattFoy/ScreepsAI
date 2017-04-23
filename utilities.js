@@ -294,7 +294,11 @@ function calculateDefense(room) {
         }
       }
     } else {
-      //console.log(' --> <a href="#!/room/' + rName + '">' + rName + '</a> not visible');
+      if (!Memory.empire.observationRequests) { Memory.empire.observationRequests = []; }
+      if (Memory.empire.observationRequests.indexOf(rName) === -1) {
+        Memory.empire.observationRequests.push(rName);
+      }
+      console.log('Calculating defense --> <a href="#!/room/' + rName + '">' + rName + '</a> not visible');
     }
   });
 }

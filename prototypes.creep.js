@@ -66,6 +66,18 @@ module.exports = function() {
   }
 
   Creep.prototype.goUpgrade = function() {
+    function basicUpgrade(creep) {
+      let controller = Game.rooms[creep.memory.origin].controller;
+      creep.memory.inUpgradeSweetSpot = false;
+      if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+        creep.travelTo(controller, { range: 3, ignoreCreeps: true });
+      } else {
+        if (creep.pos.getRangeTo(controller) > 1) {
+          creep.move(creep.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
+        }
+      }
+    }
+
     if (this.room.name !== this.memory.origin) {
       this.memory.returnToOrigin = true;
     } else {
@@ -117,35 +129,14 @@ module.exports = function() {
             if (roomPos) {
               this.travelTo(roomPos, {range: 0, ignoreCreeps: true});
             } else {
-              this.memory.inUpgradeSweetSpot = false;
-              if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-                this.travelTo(controller, { range: 3, ignoreCreeps: false });
-              } else {
-                if (this.pos.getRangeTo(controller) > 1) {
-                  this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
-                }
-              }
+              basicUpgrade(this)
             }
           } else {
-            this.memory.inUpgradeSweetSpot = false;
-            if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-              this.travelTo(controller, { range: 3, ignoreCreeps: false });
-            } else {
-              if (this.pos.getRangeTo(controller) > 1) {
-                this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
-              }
-            }
+            basicUpgrade(this);
           }
         }
       } else {
-        this.memory.inUpgradeSweetSpot = false;
-        if (this.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-          this.travelTo(controller, { range: 3, ignoreCreeps: false });
-        } else {
-          if (this.pos.getRangeTo(controller) > 1) {
-            this.move(this.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
-          }
-        }
+        basicUpgrade(this);
       }
     }
   }

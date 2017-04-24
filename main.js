@@ -87,7 +87,7 @@ module.exports.loop = function () { profiler.wrap(function() {
     let room = Game.rooms[roomName];
     utilities.initializeRoomMemory(room);
     
-    if (Game.time % 15 === 1) {
+    if (Game.time % 17 === 1) {
       utilities.generateBuildQueue(room);
     }
 
@@ -112,10 +112,6 @@ module.exports.loop = function () { profiler.wrap(function() {
 
       modules.processTowers(room);
       modules.processLinks(room);
-
-      if (room.controller.level >= 8) {
-        modules.processObserver(room);
-      }
 
       if (Game.time % 10 === 7 && Game.cpu.bucket > 5000) {
         modules.processLabs(room);
@@ -165,6 +161,10 @@ module.exports.loop = function () { profiler.wrap(function() {
           //console.log(room.name + ' should send energy to ' + destinationRooms[0].name)
           Game.sendEnergy(room.name, destinationRooms[0].name);
         }
+      }
+
+      if (room.controller.level >= 8) {
+        modules.processObserver(room);
       }
     } else {
       //console.log(roomName + " isn't mine.");

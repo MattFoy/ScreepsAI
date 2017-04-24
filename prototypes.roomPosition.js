@@ -85,4 +85,39 @@ module.exports = function() {
     //console.log('Total: ' + towerDamage);
     return towerDamage;
   }
+
+  RoomPosition.prototype.getRangeTo2 = function(target) {
+    if (target.pos) { target = target.pos; }
+
+    if (this.roomName === target.roomName) {
+      if (this.x === target.x && this.y === target.y) {
+        return 0;
+      } else {
+        return Math.max(Math.abs(this.x - target.x), Math.abs(this.y - target.y));
+      }
+      //return this.getRangeTo(target);
+    } else {
+      let exits = Game.map.describeExits(this.roomName);
+      let x1 = this.x;
+      let y1 = this.y;
+      let x2, y2;
+      if (target.roomName === exits[TOP]) {
+        x2 = target.x;
+        y2 = target.y - 50;
+      } else if (target.roomName === exits[BOTTOM]) { 
+        x2 = target.x;
+        y2 = target.y + 50;
+      } else if (target.roomName === exits[LEFT]) { 
+        x2 = target.x - 50;
+        y2 = target.y;
+      } else if (target.roomName === exits[RIGHT]) { 
+        x2 = target.x + 50;
+        y2 = target.y;
+      } else {
+        return Infinity;
+      }
+
+      return Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+    }
+  }
 }

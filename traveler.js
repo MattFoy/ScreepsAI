@@ -2,7 +2,7 @@ require('prototypes.room')();
 
 "use strict";
 const REPORT_CPU_THRESHOLD = 100;
-const DEFAULT_MAXOPS = 40000;
+const DEFAULT_MAXOPS = 400000;
 const DEFAULT_STUCK_VALUE = 5;
 const DEFAULT_STUCK_PATH_DURATION = 15;
 class Traveler {
@@ -202,6 +202,13 @@ class Traveler {
         travelData.stuck = 0;
       }
     }
+
+    if (travelData.incomplete 
+      && travelData.retryOn 
+      && Game.time - travelData.retryOn > 0) {
+      delete travelData.path;
+    }
+
     // handle case where creep is stuck
     if (travelData.stuck >= DEFAULT_STUCK_VALUE && !options.ignoreStuck) {
       if (options.ignoreCreeps === false) {
@@ -257,6 +264,8 @@ class Traveler {
       }
       if (ret.incomplete) {
         console.log(`TRAVELER: incomplete path for ${creep.name}`);
+        travelData.incomplete = true;
+        travelData.retryOn = Game.time + 30;
         if (ret.ops < 2000 && options.useFindRoute === undefined && travelData.stuck < DEFAULT_STUCK_VALUE) {
           options.useFindRoute = false;
           ret = this.findTravelPath(creep, destination, options);

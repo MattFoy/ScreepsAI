@@ -1,14 +1,14 @@
 /*
 
 TODO:
+* Better tower target prioritization:
+  - shoot based on best damage...
+  - fix healer bullshit
+
+* Combat logic for campaigns
+
 * Power Bank code
-
 * remote defender squads ( >1 )
-
-* Custom lab plans for reactions in each room
- -- manual setup? How to automate the "plan" otherwise? :\
- -- how to route resources?
- -- when to switch over reaction types?
 
 * Finish chemist code
   -- load nukers
@@ -28,13 +28,10 @@ TODO:
 
 * Add max energy threshold to market queries / filter, wait for RCL 6...
 
-*mineral extractors should wait if the container is full, 
+* mineral extractors should wait if the container is full, 
   * not mine it and drop it and also not try to go store it somewhere else...
   * can cause issues with fleeing logic though
 
-* recheck squad periodically?
-   respawn missing squaddies? Or wait until all gone then reform from scratch?
-   depends on the tactic, I suppose?
 
 */
 
@@ -106,7 +103,6 @@ module.exports.loop = function () { profiler.wrap(function() {
       }
       
       if (Game.time % 373 === 13 && Game.cpu.bucket > 9000) {
-        console.log("Generating upgrade sweet spots");
         utilities.generateUpgradeSweetSpots(room);
       }
 

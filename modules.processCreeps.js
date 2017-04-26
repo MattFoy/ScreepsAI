@@ -7,6 +7,18 @@ function processCreeps() {
   for(let name in Game.creeps) {
     try {
       let creep = Game.creeps[name];
+      
+      // let the campaign engine handle squaddies
+      if (creep.memory.role === 'squaddie') { 
+        if (creep.memory._travel && creep.memory._travel.tick 
+          && (Game.time - creep.memory._travel.tick > 1)) {
+          //console.log(creep.name + ', ' + creep.memory.role + ', stopped moving.');
+          delete creep.memory._travel;
+        }
+        
+        continue;
+      }
+
       if (!hostilesInRoom[creep.room.name]) {
         let hostiles = creep.room.find(FIND_HOSTILE_CREEPS, { filter: 
           (c) => c.getActiveBodyparts(ATTACK) > 0 
@@ -34,9 +46,11 @@ function processCreeps() {
             //console.log(creep.name + ', ' + creep.memory.role + ', fleeing to ' + creep.memory.origin)
             creep.travelTo(Game.rooms[creep.memory.origin].controller, {range: 1});
             if (creep.fatigue > 0 && creep.carry[RESOURCE_ENERGY] > 0) {
-              creep.drop(RESOURCE_ENERGY);
+              if (creep.pos.findClosestByRange(hostilesInRoom[creep.room.name]).pos.getRangeTo(creep) <= 5) {
+                creep.drop(RESOURCE_ENERGY);
+              }
             }
-            if (roles[creep.memory.role].forget) {
+            if (hostilesInRoom[creep.room.name] && roles[creep.memory.role].forget) {
               roles[creep.memory.role].forget(creep);
             }
           } else {

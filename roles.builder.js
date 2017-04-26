@@ -43,7 +43,8 @@ let roleBuilder = {
       // Find something to either repair or build
       if (!creep.memory.buildOrRepair) {
         if (Memory.empire && Memory.empire.buildQueues 
-          && Memory.empire.buildQueues[creep.memory.origin] && Memory.empire.buildQueues[creep.memory.origin].length > 0) {
+          && Memory.empire.buildQueues[creep.memory.origin] 
+          && Memory.empire.buildQueues[creep.memory.origin].length > 0) {
           
           if (!Memory.empire.buildQueueAssignments) {
             Memory.empire.buildQueueAssignments = {};
@@ -56,6 +57,15 @@ let roleBuilder = {
               Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
               Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
               break;
+            }
+          }
+
+          if (!creep.memory.buildOrRepair) {
+            let buildQueue = _.filter(Memory.empire.buildQueues[creep.memory.origin], 
+              (q) => q.type === 'build');
+
+            if (buildQueue.length > 0) {
+              creep.memory.buildOrRepair = buildQueue[0];
             }
           }
         }
@@ -140,9 +150,28 @@ let roleBuilder = {
   },
 
   getQuota: function(room) {
+    //console.log('Builder Quota for ' + room.name);
+    let repairJobs = _.filter(Memory.empire.buildQueues[room.name], (q) => q.type === 'repair' && !q.assigned);
+    let buildJobs = _.filter(Memory.empire.buildQueues[room.name], (q) => q.type === 'build' && !q.assigned);
+
+    let workBodyParts = _.filter(this.determineBodyParts(room), (b) => b === WORK).length;
+    //console.log('work parts: ' + workBodyParts);
+    
+    let totalRepairNeeded = _.sum(repairJobs, 'amountTotal') - _.sum(repairJobs, 'amount');
+    let totalBuildNeeded = _.sum(buildJobs, 'amountTotal') - _.sum(buildJobs, 'amount');
+
+    let repairNeeded = Math.round(totalRepairNeeded / (REPAIR_POWER * workBodyParts)) * 2;
+    let buildNeeded = Math.round(totalBuildNeeded / (BUILD_POWER * workBodyParts)) * 2;
+
+    let quota = Math.round((repairNeeded + buildNeeded) / 1000);
+
+    // console.log('Repair Jobs: ' + repairJobs.length + ', ' + repairNeeded);
+    // console.log('Build Jobs: ' + buildJobs.length + ', ' + buildNeeded);
+    console.log(room.name + ', builder quota: ' + quota);
+
     //let extensionBlueprints = room.find(FIND_CONSTRUCTION_SITES, { filter: (cs) => cs.structureType === STRUCTURE_EXTENSION });
     //console.log(extensionBlueprints.length)
-    return 2;
+    return Math.min(6, Math.max(2, quota));
   },
 
   determinePriority: function(room, rolesInRoom) {

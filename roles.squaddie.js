@@ -11,28 +11,22 @@ let roleSquaddie = {
   run: profiler.registerFN(function(creep) {
     let campaign = Memory.empire.campaigns[creep.memory.campaign];
     
-    if (campaign && campaign.status 
-      && (campaign.status === 'forming' || campaign.status === 'rallying')) {
-      if (creep.room.name !== campaign.rallyPoint.roomName 
-        || (creep.pos.getRangeTo(campaign.rallyPoint.x, campaign.rallyPoint.y) >= 1)) {
-        creep.travelTo({ pos: campaign.rallyPoint }, {range: 1, allowHostile: true });
-      } else {
-        //creep.travelTo(campaign.rallyPoint, {range: 1, ignoreCreeps: false, allowHostile: true })
-      }
+    if (!campaign) { 
+      console.log('[' + creep.name + '] ' + creep.memory.campaign + ' is invalid campaign?');
+      return; 
     } else {
-      if (!campaign) { 
-        console.log('[' + creep.name + '] ' + creep.memory.campaign + ' is invalid campaign?');
+      let squadDetail = _.filter(campaign.squad, (c) => c.name === creep.name)[0];
+      if (!squadDetail) { 
+        console.log('[' + creep.name + '] is not in the squad for ' + creep.memory.campaign + '?');
         return; 
       } else {
-        let squadDetail = _.filter(campaign.squad, (c) => c.name === creep.name)[0];
-        if (!squadDetail) { 
-          console.log('[' + creep.name + '] is not in the squad for ' + creep.memory.campaign + '?');
-          return; 
-        } else {
-          //squads[squadDetail.position].run(creep);
-          // do stuff based on memory?
-          // let the campaign controller decide?
-        }
+        //squads[squadDetail.position].run(creep);
+        // do stuff based on memory?
+        // let the campaign controller decide?
+
+        
+
+
       }
     }
   }, 'run:squaddie'),
@@ -42,6 +36,7 @@ let roleSquaddie = {
     let body = [];
     let squadIdx = -1;
     let boosts = [];
+    let type = '';
 
     for (var name in Memory.empire.campaigns) {
       if (!Memory.empire.campaigns[name].squad) { continue; }
@@ -59,6 +54,7 @@ let roleSquaddie = {
               }, true))) ) {
           squad = name;
           body =  Memory.empire.campaigns[name].squad[i].body;
+          type =  Memory.empire.campaigns[name].squad[i].type;
           squadIdx = i;
           boosts = Memory.empire.campaigns[name].squad[i].boosts;
           break;
@@ -70,7 +66,7 @@ let roleSquaddie = {
       body = this.determineBodyParts(room);
     }
 
-    // a closure!
+    // wow, so javascript, much closure!
     function saveCreepName(squad, idx) {
       let run = function(name) {
         console.log(name + ' spawned to squad ' + squad + ' in squad position: ' + idx)
@@ -82,7 +78,7 @@ let roleSquaddie = {
     let callback = ((squadIdx > -1) ? saveCreepName(squad, squadIdx) : null);
 
     let ret = {
-      memory: { origin: room.name, role: 'squaddie', campaign: squad },
+      memory: { origin: room.name, role: 'squaddie', campaign: squad, type: type },
       body: body,
       spawnCallback: callback
     }

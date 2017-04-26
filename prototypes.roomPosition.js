@@ -93,7 +93,9 @@ module.exports = function() {
       if (this.x === target.x && this.y === target.y) {
         return 0;
       } else {
-        return Math.max(Math.abs(this.x - target.x), Math.abs(this.y - target.y));
+        let distance = Math.max(Math.abs(this.x - target.x), Math.abs(this.y - target.y));
+        //console.log('distance: ' + distance)
+        return distance;
       }
       //return this.getRangeTo(target);
     } else {

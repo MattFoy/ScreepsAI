@@ -35,7 +35,7 @@ module.exports = {
   		&& Game.time - Memory.empire.observers[room.name].observingUntil < 0) {
   		observer.observeRoom(Memory.empire.observers[room.name].observing);
   		console.log('Continuing observation of <a href="#!/room/' + Memory.empire.observers[room.name].observing + '">' + Memory.empire.observers[room.name].observing + '</a>')
-  	} else if (Memory.empire.observationRequests 
+  	} else if (observer && Memory.empire.observationRequests 
 			&& Memory.empire.observationRequests.length > 0) {
   		Memory.empire.observers[room.name].observing = Memory.empire.observationRequests.pop();
   		Memory.empire.observers[room.name].observingUntil = Game.time + 5;

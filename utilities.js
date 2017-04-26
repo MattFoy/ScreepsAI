@@ -478,7 +478,6 @@ function generateBuildQueue(room) {
       && a.type === 'repair' && b.type === 'repair') 
     ? b.hits - a.hits
     : getPriority(b.type, b.structureType) - getPriority(a.type, a.structureType));
-
 }
 generateBuildQueue = profiler.registerFN(generateBuildQueue, 'generateBuildQueue');
 

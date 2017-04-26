@@ -69,8 +69,12 @@ module.exports = function() {
     function basicUpgrade(creep) {
       let controller = Game.rooms[creep.memory.origin].controller;
       creep.memory.inUpgradeSweetSpot = false;
+      let ignoreCreeps = true;
+      if (creep.room.name === creep.memory.origin && creep.pos.getRangeTo(controller) < 4) {
+        ignoreCreeps = false;
+      }
       if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-        creep.travelTo(controller, { range: 3, ignoreCreeps: true });
+        creep.travelTo(controller, { range: 3, ignoreCreeps: ignoreCreeps });
       } else {
         if (creep.pos.getRangeTo(controller) > 1) {
           creep.move(creep.pos.getDirectionTo2(controller.pos.x, controller.pos.y));
@@ -257,6 +261,10 @@ module.exports = function() {
             this.memory.targetEnergyHarvestId = this.pos.findClosestByPath(sources).id;      
           } else {
             this.say("Lost!");
+            if (this.room.name !== this.memory.origin) {
+              //this.memory.returnToOrigin = true;
+              this.travelTo(Game.rooms[this.memory.origin].controller, {range: 1});
+            }
           }
         }
 
@@ -649,7 +657,7 @@ module.exports = function() {
           for (var y = Math.max(1, target.pos.y - 3); y <= Math.min(48, target.pos.y + 3); y++) {
             let pos = this.room.getPositionAt(x, y);
             if (pos.lookFor(LOOK_STRUCTURES).length === 0 && pos.isPathable()) {
-              this.room.visual.text('o', pos);
+              //this.room.visual.text('o', pos);
               safeSpots.push(pos);
               if (pos.getRangeTo(this) <= 1) {
                 this.moveTo(pos);

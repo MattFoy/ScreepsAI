@@ -166,8 +166,12 @@ module.exports = function() {
 
 
 
-  Game.spawnReport = function() {
+  Game.spawnReport = function(onlyRoomName) {
     for (var roomName in Game.rooms) {
+      if (onlyRoomName !== undefined && roomName !== onlyRoomName) {
+        continue;
+      }
+      
       let room = Game.rooms[roomName];
       if (room && room.controller && room.controller.my) {  
 

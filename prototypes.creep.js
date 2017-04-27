@@ -106,8 +106,12 @@ module.exports = function() {
             this.withdraw(container, RESOURCE_ENERGY);
           }
         }
-        if (this.memory.inUpgradeSweetSpot) {
-          this.upgradeController(controller);
+        if (this.memory.inUpgradeSweetSpot && Game.time - this.memory.inUpgradeSweetSpot <= 1) {
+          if (this.upgradeController(controller) === OK) {
+            this.memory.inUpgradeSweetSpot = Game.time;
+          } else {
+            this.memory.inUpgradeSweetSpot = 0;
+          }
         } else {
           let creep = this;
 
@@ -123,8 +127,8 @@ module.exports = function() {
           }); 
           
           if (idealSpotsWeOccupy.length >= 1 && idealPositions.length > 0) {
-              this.memory.inUpgradeSweetSpot = true;
-              this.upgradeController(controller);
+            this.memory.inUpgradeSweetSpot = Game.time;
+            this.upgradeController(controller);
           } else if (idealSpotsWeOccupy.length <= 0 && idealPositions.length > 0) {
             //console.log(JSON.stringify(idealPositions[0]));
             let idealRoomPositions = _.map(idealPositions, (iPos) => 
@@ -247,7 +251,9 @@ module.exports = function() {
     } else {
       //choose the source node
       let closestDroppedEnergy = this.pos.findClosestByPath(FIND_DROPPED_ENERGY, { filter : (e) => 
-        (((e.amount * 10) / Math.pow(e.pos.getRangeTo(this), 2)) > 7 && e.amount >= 100)
+        (((e.amount * 10) / Math.pow(e.pos.getRangeTo(this), 2)) > 7 
+          && e.amount >= 100 
+          && e.resourceType === RESOURCE_ENERGY)
       });
 
       if (closestDroppedEnergy) {

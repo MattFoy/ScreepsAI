@@ -84,7 +84,7 @@ module.exports.loop = function () { profiler.wrap(function() {
     let room = Game.rooms[roomName];
     utilities.initializeRoomMemory(room);
     
-    if (Game.time % 17 === 1) {
+    if (Game.time % 25 === 1) {
       utilities.generateBuildQueue(room);
     }
 
@@ -120,27 +120,6 @@ module.exports.loop = function () { profiler.wrap(function() {
       }
       if (Game.time % 8 === 2 && Game.cpu.bucket > 2000) {
         utilities.setupTerminalTradingPlan(room);
-      }
-
-      if (Game.time % 17 === 0 && Game.cpu.bucket > 5000) {
-        if (room.terminal && SCM.terminalSends[roomName]) {
-          for (let targetRoomName in SCM.terminalSends[roomName]) {
-            let targetRoom = Game.rooms[targetRoomName];
-            if (targetRoom && targetRoom.terminal && SCM.terminalSends[roomName][targetRoomName] 
-              && SCM.terminalSends[roomName][targetRoomName].length > 0) {
-              SCM.terminalSends[roomName][targetRoomName].forEach(function(resourceType) {
-                let sendAmount = Math.min(5000, (room.terminal.store[resourceType] ? room.terminal.store[resourceType] : 0));
-                if (sendAmount > 0 
-                  && room.terminal.store[resourceType] 
-                  && room.terminal.store[resourceType] >= sendAmount
-                  && _.sum(targetRoom.terminal.store) < targetRoom.terminal.storeCapacity - sendAmount) {
-                  console.log("Sending " + resourceType + " from " + roomName + ' to ' + targetRoomName);
-                  console.log(room.terminal.send(resourceType, sendAmount, targetRoomName));
-                }
-              });
-            }
-          }
-        }
       }
     
       if (Game.cpu.bucket > 9000 

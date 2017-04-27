@@ -1,8 +1,201 @@
 const utilities = require('utilities');
-//const roles = require('roles');
-let roles = '';
+require('prototypes.structureTerminal')();
 
 module.exports = function() {
+  Room.prototype.requestResource = function(resourceType, amount, buyIfMising) {
+    console.log('[' + this.name + '] requesting ' + amount + ' ' + resourceType);
+    let amountNeeded = amount;
+    for (const roomName in Game.rooms) {
+      let room = Game.rooms[roomName];
+      if (amountNeeded <= 0) { break; }
+      if (room.controller && room.controller.my && room.terminal) {
+        if (room.terminal.store[resourceType] && room.terminal.store[resourceType] > 1000) {
+          let amountToSend = Math.min(room.terminal.store[resourceType], amountNeeded);
+          if (OK === room.terminal.send(resourceType, amountToSend, this.name)) {
+            amountNeeded -= amountToSend;
+            console.log(room.name + ' sent ' + resourceType + ' x' + amountToSend + ' to ' + this.name);
+          }
+        }
+      }
+    }
+
+    if (amountNeeded > 0 && buyIfMising) {
+      this.terminal.buy(resourceType, amountNeeded);
+      console.log('Buying the remainder. ' + resourceType + ' x' + amountNeeded);
+    }
+  }
+
+  Room.prototype.remoteMine = function(targetRoomName) {
+    if (!this.controller || !this.controller.my) {
+      console.log('Not my room');
+      return ERR_INVALID_ARGS;
+    }
+
+    let targetRoom = Game.rooms[targetRoomName];
+    if (!targetRoom) { 
+      console.log('Invalid target')
+      return ERR_INVALID_ARGS; 
+    }
+
+    if (targetRoom.controller 
+      && (!targetRoom.controller.my 
+        || (targetRoom.controller.reservation 
+          && targetRoom.controller.reservation.username 
+          !== GameState.username))) {
+      console.log('Cannot mine this room');
+      return ERR_INVALID_ARGS;
+    }
+
+    let target;
+    if (this.storage) {
+      target = this.storage;
+    } else {
+      let spawns = this.find(FIND_MY_SPAWNS);
+      if (spawns.length > 0) {
+        target = spawns[0];
+      }
+    }
+
+    if (!target) { 
+      console.log('No target for pathing');
+      return ERR_INVALID_ARGS; 
+    }
+
+    let sources = targetRoom.find(FIND_SOURCES);
+    let minerals = targetRoom.find(FIND_MINERALS);
+
+    let destinations = _.map(sources, (source) => {
+      return {
+        pos: source.pos,
+        id: source.id,
+        roleReservable: 'miner'
+      };
+    }).concat(_.map(minerals, (mineral) => {
+      return {
+        pos: mineral.pos,
+        id: mineral.id,
+        roleReservable: 'mineralExtractor'
+      };
+    }));
+
+    let plannedRoads = [];
+    let plannedContainers = [];
+
+    for (let i = 0; i < destinations.length; i++) {
+      let destination = destinations[i];
+
+      let result = PathFinder.search(
+        target.pos, 
+        { pos: destination.pos, range: 1},
+        {
+          plainCost: 2,
+          swampCost: 10,
+          roomCallback: function(roomName) {
+            //console.log('callback: ' + roomName);
+            let room = Game.rooms[roomName];
+            if (!room) { return; }
+
+            let costs = new PathFinder.CostMatrix;
+
+            let structs = room.find(FIND_STRUCTURES);
+
+            structs.forEach(function(struct) {
+              if (struct.structureType === STRUCTURE_ROAD) {
+                // Favor roads over plain tiles
+                costs.set(struct.pos.x, struct.pos.y, 1);
+              } else if (OBSTACLE_OBJECT_TYPES.indexOf(struct.structureType) > -1
+                || (struct.structureType === STRUCTURE_RAMPART && !struct.my)) {
+                // Can't walk through non-walkable buildings
+                costs.set(struct.pos.x, struct.pos.y, 0xff);
+              }
+            });
+
+            _.filter(Game.constructionSites, 
+              (cs) => cs.pos.roomName === roomName 
+                && cs.structureType === STRUCTURE_ROAD
+            ).forEach((cs) =>
+              costs.set(cs.pos.x, cs.pos.y, 1)
+            );
+
+            // treat planned roads like roads
+            _.filter(plannedRoads, 
+              (pos) => pos.roomName === roomName
+            ).forEach((pos) =>
+              costs.set(pos.x, pos.y, 1)
+            );
+
+            return costs;
+          },
+          maxOps: 20000000,
+          maxRooms: 4
+        }
+      );
+
+      if (result && result.path && result.path.length > 0) {
+        for (var j = 0; j < result.path.length - 1; j++) {
+          plannedRoads.push(result.path[j]);
+        }
+        plannedContainers.push(result.path[result.path.length - 1]);
+        let flagName = destination.pos.roomName + '_' + destination.id.slice(-4);
+        
+        targetRoom.createFlag(
+          result.path[result.path.length - 1].x,
+          result.path[result.path.length - 1].y,
+          flagName);
+
+        if (this.memory.roleReservables[destination.roleReservable].indexOf(flagName) === -1) {
+          this.memory.roleReservables[destination.roleReservable].push(flagName);
+        }
+      }
+    }
+
+    for (var i = 0; i < plannedRoads.length; i++) {
+      Game.rooms[plannedRoads[i].roomName].visual.text('o', plannedRoads[i].x, plannedRoads[i].y);
+      Game.rooms[plannedRoads[i].roomName].createConstructionSite(
+        plannedRoads[i].x, 
+        plannedRoads[i].y, 
+        STRUCTURE_ROAD);
+    }
+    for (var i = 0; i < plannedContainers.length; i++) {
+      Game.rooms[plannedContainers[i].roomName].visual.text('X', plannedContainers[i].x, plannedContainers[i].y); 
+      Game.rooms[plannedContainers[i].roomName].createConstructionSite(
+        plannedContainers[i].x, 
+        plannedContainers[i].y, 
+        STRUCTURE_CONTAINER);
+    }
+
+    if (this.memory.responsibleForRooms.indexOf(targetRoomName) === -1) {
+      this.memory.responsibleForRooms.push(targetRoomName);
+    }
+
+    function configureControllerFlag(targetRoom) {
+      if (targetRoom.controller) {
+        for (var x = targetRoom.controller.pos.x - 1;
+          x < targetRoom.controller.pos.x + 1; x++) {
+          for (var y = targetRoom.controller.pos.y - 1;
+            y < targetRoom.controller.pos.y + 1; y++) {
+            let roomPos = targetRoom.getPositionAt(x, y);
+            if (roomPos.isPathable()) {
+              if (roomPos.lookFor(LOOK_STRUCTURES).length === 0) {
+                if (OK === targetRoom.createFlag(x,y, 'reserve_' + targetRoom.name)) {
+                  return 'reserve_' + targetRoom.name;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    let reserveFlagName = configureControllerFlag(targetRoom);
+    if (reserveFlagName && this.memory.roleReservables['roomReserver'].indexOf(reserveFlagName) === -1) {
+      this.memory.roleReservables['roomReserver'].push(reserveFlagName);
+    }
+
+    return OK;
+
+  }
+
   Room.prototype.getFreeSpawn = function() {
     let thisSpawns = _.filter(Game.spawns, (s) => (s.this.name === this.name));
     let spawn = thisSpawns[0];

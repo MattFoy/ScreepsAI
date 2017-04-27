@@ -53,10 +53,46 @@ let roleBuilder = {
           for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {            
             if (!Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] 
               && !Memory.empire.buildQueues[creep.memory.origin][i].assigned) {
-              creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][i];
-              Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
-              Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
-              break;
+              
+              if (Memory.empire.buildQueues[creep.memory.origin][i].type === 'repair' 
+                && Memory.empire.buildQueues[creep.memory.origin][i].structureType === STRUCTURE_ROAD) {
+
+                var j = i;
+                let closestRoadIdx = i;
+                let distanceToClosestRoad = 100;
+                let currentJob;
+                do {
+                  currentJob = Memory.empire.buildQueues[creep.memory.origin][j];
+
+                  if (creep.pos.getRangeTo2(currentJob.pos) < distanceToClosestRoad) {
+                    closestRoadIdx = j;
+                    distanceToClosestRoad = creep.pos.getRangeTo2(currentJob.pos);
+                  }
+
+                  j++;
+                } while (currentJob.type === 'repair' 
+                  && currentJob.structureType === STRUCTURE_ROAD
+                  && j < Memory.empire.buildQueues[creep.memory.origin].length
+                  && !Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][j].id] 
+                  && !Memory.empire.buildQueues[creep.memory.origin][j].assigned);
+
+                // console.log('Creep: ' + creep.name + ', pos: ' + JSON.stringify(creep.pos));
+                // console.log('Start idx: ' + i); 
+                // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][i].pos));
+                // console.log('Final idx: ' + closestRoadIdx);
+                // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].pos));
+
+                creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx];
+                Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].id] = creep.name;
+                Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].assigned = true;
+                break;
+
+              } else {
+                creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][i];
+                Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
+                Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
+                break;
+              }
             }
           }
 
@@ -150,28 +186,33 @@ let roleBuilder = {
   },
 
   getQuota: function(room) {
-    //console.log('Builder Quota for ' + room.name);
+    let min = 1;
+    let max = 4;
+    if (room.controller.level >= 7) { 
+      min = 2;
+      max = 7; 
+    }
+
     let repairJobs = _.filter(Memory.empire.buildQueues[room.name], (q) => q.type === 'repair' && !q.assigned);
     let buildJobs = _.filter(Memory.empire.buildQueues[room.name], (q) => q.type === 'build' && !q.assigned);
 
     let workBodyParts = _.filter(this.determineBodyParts(room), (b) => b === WORK).length;
-    //console.log('work parts: ' + workBodyParts);
     
     let totalRepairNeeded = _.sum(repairJobs, 'amountTotal') - _.sum(repairJobs, 'amount');
     let totalBuildNeeded = _.sum(buildJobs, 'amountTotal') - _.sum(buildJobs, 'amount');
 
-    let repairNeeded = Math.round(totalRepairNeeded / (REPAIR_POWER * workBodyParts)) * 2;
-    let buildNeeded = Math.round(totalBuildNeeded / (BUILD_POWER * workBodyParts)) * 2;
+    let sprawlFactor = Math.floor(room.memory.responsibleForRooms.length / 2);
+    let queueFactor = Math.round(Memory.empire.buildQueues[room.name].length / 20);
 
-    let quota = Math.round((repairNeeded + buildNeeded) / 1000);
+    let repairNeeded = Math.round(totalRepairNeeded / (REPAIR_POWER * workBodyParts));
+    let buildNeeded = Math.round(totalBuildNeeded / (BUILD_POWER * workBodyParts));
 
-    // console.log('Repair Jobs: ' + repairJobs.length + ', ' + repairNeeded);
-    // console.log('Build Jobs: ' + buildJobs.length + ', ' + buildNeeded);
-    console.log(room.name + ', builder quota: ' + quota);
+    let quota = Math.ceil(((repairNeeded + buildNeeded) * sprawlFactor * queueFactor) / 1000);
 
-    //let extensionBlueprints = room.find(FIND_CONSTRUCTION_SITES, { filter: (cs) => cs.structureType === STRUCTURE_EXTENSION });
-    //console.log(extensionBlueprints.length)
-    return Math.min(6, Math.max(2, quota));
+    // console.log(room.name + ', sprawlFactor: ' + sprawlFactor 
+    //   + ', queueFactor: ' + queueFactor 
+    //   + ', builder quota: ' + quota);
+    return Math.min(max, Math.max(min, quota));
   },
 
   determinePriority: function(room, rolesInRoom) {

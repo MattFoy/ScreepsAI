@@ -101,6 +101,11 @@ let roleMineralExtractor = {
     let flag = Game.flags[reservable];
     if (!flag || !flag.room) { return false; } // just assume the mineral is on cooldown in rooms we don't have vision on...
     
+    if (flag.pos.findInRange(FIND_STRUCTURES, 1, 
+      { filter: (s) => s.structureType === STRUCTURE_CONTAINER }).length <= 0) {
+      return false;
+    }
+
     let targets = flag.room.find(FIND_STRUCTURES, { filter: (s) => (s.structureType === STRUCTURE_EXTRACTOR) });
     if (targets.length > 0) {
       let extractor = targets[0];

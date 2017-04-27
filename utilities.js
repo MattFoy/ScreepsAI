@@ -634,5 +634,5 @@ module.exports = {
   generateBuildQueue: generateBuildQueue,
   initGameState: initGameState,
   generateUpgradeSweetSpots: generateUpgradeSweetSpots,
-  setupTerminalTradingPlan: setupTerminalTradingPlan
+  setupTerminalTradingPlan: setupTerminalTradingPlan,
 };

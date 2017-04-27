@@ -50,8 +50,7 @@ let roleRemoteDefender = {
         }
 
         if (!target) {
-          target = creep.pos.findClosestByRange(_.filter(targets, 
-            (t) => t.getActiveBodyparts(ATTACK) > 0 || t.getActiveBodyparts(RANGED_ATTACK) > 0));
+          target = creep.pos.findClosestByRange(targets);
           if (target) { creep.memory.targetId = target.id; }
         }
 

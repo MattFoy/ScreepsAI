@@ -153,9 +153,7 @@ function getChemistTask(creep) {
               console.log('Gotta buy ' + amount + ' more ' + resType + ' in ' + creep.room.name);
               if (creep.room.terminal) {
                 //creep.room.terminal.getBestOrders(ORDER_SELL, resType);
-                if (Game.cpu.bucket > 5000) {
-                  creep.room.terminal.buy(resType, amount);
-                }
+                creep.room.requestResource(resType, amount, true);
               }
             }
           }
@@ -203,13 +201,16 @@ function getChemistTask(creep) {
           }
           let mineralsRequired = Math.min(creep.carryCapacity, lab.mineralCapacity - lab.mineralAmount);
           if ((lab.mineralAmount === 0 || (lab.mineralAmount > 0 && lab.mineralAmount < (lab.mineralCapacity / 2)))
-            && (!lab.mineralType || lab.mineralType === res)
-            && mineralsAvailable >= mineralsRequired) {
-            creep.memory.chemistry.targetLabId = lab.id;
-            creep.memory.chemistry.task = 'load';
-            creep.memory.chemistry.mineralType = res;
-            creep.memory.chemistry.amount = mineralsRequired;
-            return;
+            && (!lab.mineralType || lab.mineralType === res)) {
+            if (mineralsAvailable >= mineralsRequired) {
+              creep.memory.chemistry.targetLabId = lab.id;
+              creep.memory.chemistry.task = 'load';
+              creep.memory.chemistry.mineralType = res;
+              creep.memory.chemistry.amount = mineralsRequired;
+              return;
+            } else {
+              creep.room.requestResource(res, mineralsRequired - mineralsAvailable, false);
+            }
           }
         }
       }

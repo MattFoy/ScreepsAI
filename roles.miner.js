@@ -59,7 +59,10 @@ let roleMiner = {
           if (source.energy > 0) {
             //creep.say('Mining');
             creep.harvest(source); 
-          } else if (source.ticksToRegeneration > 8) {
+            if (creep.memory.interimBuild) {
+              delete creep.memory.interimBuild;
+            }
+          } else {
             //creep.say('Repair');
             if (!creep.memory.interimBuild || (creep.memory.interimBuild.sleepUntil 
               && Game.time - creep.memory.sleepUntil > 0 )) {

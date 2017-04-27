@@ -552,9 +552,13 @@ function runBreachMode(campaign, squadCreeps, captain, waywardCreeps) {
 							if (captain.memory.onBreachPath.length > 0) {
 								captain.move(captain.memory.onBreachPath[pathIdx].direction);
 							}
-
-							captain.memory.onBreachPath = captain.memory.onBreachPath.slice(
-								pathIdx + 1, captain.memory.onBreachPath.length - 1);
+							if (pathIdx > 0) {
+								// for (var i = 0; i < pathIdx; i++) {
+								// 	captain.memory.onBreachPath.shift();	
+								// }
+								captain.memory.onBreachPath = captain.memory.onBreachPath.slice(
+									pathIdx, captain.memory.onBreachPath.length - 1 - pathIdx);
+							}
 						} else {
 							let pos = captain.memory.onBreachPath[1];
 							if (pos) {
@@ -571,7 +575,7 @@ function runBreachMode(campaign, squadCreeps, captain, waywardCreeps) {
 					}					
 				}
 			} else {
-				// regreoup
+				// regroup
 			}
 		}
 	}
@@ -687,9 +691,9 @@ function runBreachMode(campaign, squadCreeps, captain, waywardCreeps) {
 			} else {
 				if (dismantlersSettled && c.pos.getRangeTo2(breachTarget) > 1) {
 					task.moveTo = breachTarget.pos;
-				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 6) {
+				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
 					task.moveTo = captain.pos;
-					task.moveRange = 3;
+					task.moveRange = 2;
 				}
 			}
 
@@ -756,9 +760,9 @@ function runBreachMode(campaign, squadCreeps, captain, waywardCreeps) {
 				if (c.pos.getRangeTo2(breachTarget) > 3) {
 					task.moveTo = breachTarget.pos;
 					task.moveRange = 3;
-				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 6) {
+				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
 					task.moveTo = captain.pos;
-					task.moveRange = 3;
+					task.moveRange = 2;
 				} else {
 					c.fleeFrom(c.room.find(FIND_CREEPS), 2);
 				}

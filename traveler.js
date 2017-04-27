@@ -113,6 +113,8 @@ class Traveler {
         matrix = new PathFinder.CostMatrix();
         if (!options.ignoreCreeps) {
           Traveler.addCreepsToMatrix(room, matrix);
+        } else {
+          Traveler.addStaticCreepsToMatrix(room, matrix);
         }
       }
       else if (options.ignoreCreeps || roomName !== origin.pos.roomName) {
@@ -124,6 +126,8 @@ class Traveler {
       for (let obstacle of options.obstacles) {
         matrix.set(obstacle.pos.x, obstacle.pos.y, 0xff);
       }
+
+
 
       if (room.name === destination.roomName && options.forbidEdges) {
         let exits = Game.map.describeExits(room.name);
@@ -206,7 +210,9 @@ class Traveler {
     let hasMoved = true;
     if (travelData.prev) {
       travelData.prev = Traveler.initPosition(travelData.prev);
-      if (creep.pos.inRangeTo(travelData.prev, 0)) {
+      if (travelData.prev.roomName === creep.pos.roomName
+        && travelData.prev.x === creep.pos.x
+        && travelData.prev.y === creep.pos.y) {
         hasMoved = false;
         travelData.stuck++;
       }
@@ -344,6 +350,11 @@ class Traveler {
   }
   static addCreepsToMatrix(room, matrix) {
     room.find(FIND_CREEPS).forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
+    return matrix;
+  }
+  static addStaticCreepsToMatrix(room, matrix) {
+    room.find(FIND_CREEPS, { filter: (c) => !c.memory._travel && !c.memory._move })
+      .forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
     return matrix;
   }
   static serializePath(startPos, path) {

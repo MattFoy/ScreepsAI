@@ -432,7 +432,7 @@ function generateBuildQueue(room) {
   // Add repairable structures
   let structures = room.find(FIND_STRUCTURES, { filter: function(s) {
     if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) 
-      && s.hits < (s.hitsMax * 0.4)) {
+      && s.hits < (s.hitsMax * 0.5)) {
       // a container or road in need of repair
       return true;
     } else if (room.controller && room.controller.my) {
@@ -449,7 +449,7 @@ function generateBuildQueue(room) {
         return true;
       }
     }
-  } });
+  }});
   _.map(structures, (s) => Memory.empire.buildQueues[responsibleRoom].push({
     id: s.id,
     pos: s.pos,
@@ -492,7 +492,7 @@ function initGameState() {
     CARTOGRAPHY: 3
   };
   GameState.memory = {};
-  GameState.allies = ['NixNutz', 'SBense', 'Atanner'];
+  GameState.allies = ['NixNutz', 'SBense', 'Atanner', 'Timendainum', 'KamiKatze'];
   GameState.allies.push(GameState.username);
   GameState.cpuUsedToLoad = Game.cpu.getUsed();
 
@@ -545,9 +545,10 @@ initGameState = profiler.registerFN(initGameState, 'initGameState');
 
 function generateUpgradeSweetSpots(room) {
   let sources = room.controller.pos.findInRange(FIND_STRUCTURES, 4, { filter: (s) =>
-    (s.structureType === STRUCTURE_CONTAINER && s.pos.findClosestByRange(FIND_SOURCES).pos.getRangeTo(s) > 1)
-      || s.structureType === STRUCTURE_STORAGE 
-      || s.structureType === STRUCTURE_LINK
+    (s.structureType === STRUCTURE_CONTAINER 
+      && s.pos.findClosestByRange(FIND_SOURCES).pos.getRangeTo(s) > 1)
+    || s.structureType === STRUCTURE_STORAGE 
+    || s.structureType === STRUCTURE_LINK
   });
 
   if (sources.length > 0) {
@@ -614,6 +615,8 @@ function setupTerminalTradingPlan(room) {
       // do market stuff
       // todo...
       //room.terminal.storeHistoricalPriceData();
+
+      // when will I have the spare CPU to do this? lmao
     }
   }
 }

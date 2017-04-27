@@ -5,7 +5,7 @@ module.exports = {
 		'W83S43': ['O', 'L'],
 		'W85S41': ['LHO2', 'X'],
 		'W88S41': ['LO', 'OH'],
-		'W87S45': ['U', 'L'],
+		'W87S45': ['Z', 'K'], //['U', 'L'],
 	}
 
 	// making XUH2O for attack boosts

@@ -133,7 +133,8 @@ let roleBuilder = {
               } else {
                 creep.getOutOfTheWay(target);
               }
-              if (target.hits >= target.hitsMax || target.hits >= creep.memory.buildOrRepair.amountTotal) {
+              if (target.hits >= target.hitsMax 
+                || target.hits >= creep.memory.buildOrRepair.amountTotal) {
                 creep.memory.buildOrRepair = null;
               }
             }

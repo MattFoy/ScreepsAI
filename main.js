@@ -6,8 +6,15 @@ TODO:
   - fix healer bullshit
 
 * Combat logic for campaigns
+  start:
+  - skirmish mode
+  - sentry mode
+  test:
+  - breach mode
+  - clear mode
 
 * Power Bank code
+
 * remote defender squads ( >1 )
 
 * Finish chemist code

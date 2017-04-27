@@ -9,26 +9,7 @@ let roleSquaddie = {
 
   /** @param {Creep} creep **/
   run: profiler.registerFN(function(creep) {
-    let campaign = Memory.empire.campaigns[creep.memory.campaign];
-    
-    if (!campaign) { 
-      console.log('[' + creep.name + '] ' + creep.memory.campaign + ' is invalid campaign?');
-      return; 
-    } else {
-      let squadDetail = _.filter(campaign.squad, (c) => c.name === creep.name)[0];
-      if (!squadDetail) { 
-        console.log('[' + creep.name + '] is not in the squad for ' + creep.memory.campaign + '?');
-        return; 
-      } else {
-        //squads[squadDetail.position].run(creep);
-        // do stuff based on memory?
-        // let the campaign controller decide?
-
-        
-
-
-      }
-    }
+    // Squaddies are operated by the campaign module
   }, 'run:squaddie'),
 
   determineSpawnParams: function(room) {

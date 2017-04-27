@@ -50,7 +50,9 @@ let roleBuilder = {
             Memory.empire.buildQueueAssignments = {};
           }
 
-          for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {            
+          for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {  
+            if (Memory.empire.buildQueues[creep.memory.origin][i].id === '58e935067ab5713c4cff24fb') { continue; }          
+            
             if (!Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] 
               && !Memory.empire.buildQueues[creep.memory.origin][i].assigned) {
               

@@ -124,6 +124,18 @@ class Traveler {
       for (let obstacle of options.obstacles) {
         matrix.set(obstacle.pos.x, obstacle.pos.y, 0xff);
       }
+
+      if (room.name === destination.roomName && options.forbidEdges) {
+        let exits = Game.map.describeExits(room.name);
+        for (let direction in exits) {
+          if (!allowedRooms[exits[direction]]) {
+            // the exit doesnt lead to a room on the path
+            let exitPositions = room.find(direction);
+            exitPositions.forEach((pos) => matrix.set(pos.x, pos.y, 100));
+          }
+        }
+      }
+
       return matrix;
     };
     return PathFinder.search(origin.pos, { pos: destination, range: options.range }, {

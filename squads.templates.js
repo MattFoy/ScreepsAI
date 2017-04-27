@@ -51,6 +51,7 @@ module.exports = {
 		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
 		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
 		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
 		{ type: 'ranger', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(RANGED_ATTACK)) },
 		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
 		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },

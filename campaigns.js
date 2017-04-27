@@ -240,13 +240,9 @@ function processCampaign_running(campaign, squadCreeps, captain) {
 
 
 function processCampaign_travelling(campaign, squadCreeps, captain) {
-	if (Game.time % 20 === 3) {
-		campaign.log += "\n[T+" + (Game.time - campaign.createdOn) + "] Travelling. Captain Pos: " + JSON.stringify(captain.pos);
-	}
-
 	let waywardCreeps = [];
 	squadCreeps.forEach(function(c) {
-		if (c.pos.getRangeTo2(captain) > 14) {
+		if (c.pos.getRangeTo2(captain) > squadCreeps.length + 1) {
 			//c.moveTo(captain);
 			waywardCreeps.push(c.name);
 			console.log(c.name + " is wayward: " + JSON.stringify(c.pos));
@@ -255,16 +251,12 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
 	if (campaign.attackPlan && campaign.attackPlan.entrancePoint) {
   	if (waywardCreeps.length === 0) {
   		_.filter(squadCreeps, 
-    		(c) => c.name !== captain.name 
-    			&& waywardCreeps.indexOf(c.name) === -1
+    		(c) => waywardCreeps.indexOf(c.name) === -1
 			).forEach(function(c) {
     	  // move towards the target
     	  c.travelTo(campaign.attackPlan.entrancePoint, 
-    	  	{ range: 2, ignoreCreeps: true, allowHostile: true });
+    	  	{ range: 2, ignoreCreeps: true, allowHostile: true, forbidEdges: true });
     	});
-
-  		captain.travelTo(campaign.attackPlan.entrancePoint,
-  			{ range: 2, ignoreCreeps: true, allowHostile: true });
   	} else {
   		let captCreeps = _.filter(squadCreeps, (c) => c.room.name === captain.room.name);
   		let avgX = Math.round(_.sum(captCreeps, 'pos.x') / captCreeps.length);

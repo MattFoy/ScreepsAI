@@ -87,6 +87,7 @@ module.exports = function() {
   }
 
   RoomPosition.prototype.getRangeTo2 = function(target) {
+    if (!target) { return Infinity; }
     if (target.pos) { target = target.pos; }
 
     if (this.roomName === target.roomName) {

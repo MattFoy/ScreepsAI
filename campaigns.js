@@ -615,24 +615,25 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 				time: Game.time
 			};
 
-			let target;
+			let target2;
 			if (nearbyEnemies.length > 0) {
-				target = c.pos.findClosestByRange(nearbyEnemies);
-				if (target) {
-					task.moveTo = target.pos;
+				target2 = c.pos.findClosestByRange(nearbyEnemies);
+				if (target2) {
+					task.moveTo = target2.pos;
 				}
 			} else {
 				if (dismantlersSettled && c.pos.getRangeTo2(target) > 1) {
 					task.moveTo = target.pos;
+					task.moveRange = 1
 				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
 					task.moveTo = captain.pos;
 					task.moveRange = 2;
 				}
 			}
 
-			if (target && c.pos.getRangeTo2(target) <= 1) {
+			if (target2 && c.pos.getRangeTo2(target2) <= 1) {
 				task.action = 'attack';
-				task.target = target.id;
+				task.target = target2.id;
 			} else {
 				let targets = c.pos.findInRange(FIND_HOSTILE_CREEPS, 1, 
 					{ filter: (c) => {
@@ -684,10 +685,12 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 				time: Game.time
 			};
 
+			let target2;
 			if (nearbyEnemies.length > 0) {
-				target = c.pos.findClosestByRange(nearbyEnemies);
-				if (target) {
-					task.moveTo = target.pos;
+				target2 = c.pos.findClosestByRange(nearbyEnemies);
+				if (target2) {
+					task.moveTo = target2.pos;
+					task.moveRange = 3;
 				}
 			} else {
 				if (c.pos.getRangeTo2(target) > 3) {
@@ -811,298 +814,44 @@ function runClearMode(campaign, squadCreeps, captain, waywardCreeps) {
 
 	let targetRoom = Game.rooms[campaign.target];
 
-	if (campaign.clearStructId) { 
-		clearTarget = Game.getObjectById(campaign.clearStructId);
-		if (!clearTarget) { delete campaign.clearStructId; }
-	}
-	if (targetRoom && !clearTarget) {
-		let structs = targetRoom.find(FIND_STRUCTURES);
-		let targets = _.filter(structs, (s) => s.structureType === STRUCTURE_SPAWN);
-    if (targets.length > 0) {
-      clearTarget = targets[0];
-    }
-    if (!clearTarget) {
-    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER)
-    	if (targets.length > 0) {
+	if (!targetRoom) {
+		captain.travelTo(new RoomPosition(25, 25, campaign.target));
+	} else {
+		if (campaign.clearStructId) { 
+			clearTarget = Game.getObjectById(campaign.clearStructId);
+			if (!clearTarget) { delete campaign.clearStructId; }
+		}
+		if (targetRoom && !clearTarget) {
+			let structs = targetRoom.find(FIND_STRUCTURES);
+			let targets = _.filter(structs, (s) => s.structureType === STRUCTURE_SPAWN);
+	    if (targets.length > 0) {
 	      clearTarget = targets[0];
 	    }
-    }
-    if (!clearTarget) {	
-    	targets = _.filter(structs, (s) => s.structureType !== STRUCTURE_RAMPART || s.structureType !== STRUCTURE_WALL)
-    	if (targets.length > 0) {
-        clearTarget = targets[0];
-      }
-    }
+	    if (!clearTarget) {
+	    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER)
+	    	if (targets.length > 0) {
+		      clearTarget = targets[0];
+		    }
+	    }
+	    if (!clearTarget) {	
+	    	targets = _.filter(structs, (s) => s.structureType !== STRUCTURE_RAMPART || s.structureType !== STRUCTURE_WALL)
+	    	if (targets.length > 0) {
+	        clearTarget = targets[0];
+	      }
+	    }
+		}
+		campaign.clearStructId = clearTarget.id;
 	}
 
 	if (!clearTarget) {
 		// run sentry mode?
 		return;
 	} else {
-		//captain.memory.onBreachPath = false;
 		if (waywardCreeps.length === 0) {
-			if (captain.pos.getRangeTo2(breachTarget) > 2) {
-				if (!captain.memory.onBreachPath) {
-					let distance = captain.pos.getRangeTo2(campaign.attackPlan.breachPath[1]);
-					//console.log(distance);
-					if (distance === 0) {
-						captain.memory.onBreachPath = campaign.attackPlan.breachPath
-							//.slice(1, campaign.attackPlan.breachPath.length - 1);
-					} else {
-						let pos = campaign.attackPlan.breachPath[1];
-						pos.roomName = campaign.target;
-						captain.travelTo(pos, { range: 0 });	
-					}
-				} else {
-					if (captain.pos.getRangeTo2(breachTarget) > 2) {
-						//let err = captain.moveByPath(captain.memory.onBreachPath);
-						let onPath = false;
-						let pathIdx = -1;
-						for (var i = 0; i < captain.memory.onBreachPath.length; i++) {
-							let pos = captain.memory.onBreachPath[i];
-							if (captain.pos.x === pos.x && captain.pos.y === pos.y) {
-								onPath = true;
-								pathIdx = i;
-							}
-						}
-						if (onPath) {
-							if (captain.memory.onBreachPath.length > 0) {
-								captain.move(captain.memory.onBreachPath[pathIdx].direction);
-							}
-							if (pathIdx > 0) {
-								// for (var i = 0; i < pathIdx; i++) {
-								// 	captain.memory.onBreachPath.shift();	
-								// }
-								captain.memory.onBreachPath = captain.memory.onBreachPath.slice(
-									pathIdx, captain.memory.onBreachPath.length - 1 - pathIdx);
-							}
-						} else {
-							let pos = captain.memory.onBreachPath[1];
-							if (pos) {
-								pos.roomName = campaign.target;
-								captain.travelTo(pos, { range: 0 });
-							} else {
-								if (longTermTarget) {
-									captain.moveTo(longTermTarget);
-								}
-							}
-						}
-					} else {
-						// in range, do the things! \o/
-					}					
-				}
-			} else {
-				// regroup
-			}
+			captain.travelTo(clearTarget, { range: 1 });
 		}
+		processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, clearTarget);
 	}
-
-	let groupedCreeps = _.groupBy(squadCreeps, 'memory.type');
-	
-	// process dismantlers first
-	let type = 'dismantler';
-	if (groupedCreeps[type] && groupedCreeps[type].length > 0) {
-		for (var i = 0; i < groupedCreeps[type].length; i++) {
-			let c = groupedCreeps[type][i];
-			let task = {
-				time: Game.time
-			};
-			if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
-				task.moveTo = captain.pos;
-				task.moveRange = 3;
-			} else if (c.pos.getRangeTo2(breachTarget) > 1) {
-				task.moveTo = breachTarget.pos;
-				//console.log(c.name + ':' + c.pos.getRangeTo2(breachTarget))
-			}
-
-			if (c.pos.getRangeTo2(breachTarget) <= 1) {
-				task.action = 'dismantle';
-				task.target = breachTarget.id;
-			} else {
-				let targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 });
-				if (targets.length > 0) {
-					targets.sort((a,b) => a.hits - b.hits);
-					task.target = targets[0].id;
-					task.action = 'dismantle';
-				}
-			}
-
-			c.memory.task = task;
-		}
-	}
-
-	type = 'medic';
-	if (groupedCreeps[type] && groupedCreeps[type].length > 0) {
-		let woundedSquadMembers = _.filter(squadCreeps, (c) => c.hitsMax > c.hits)
-		woundedSquadMembers.sort((a,b) => (a.hits / a.hitsMax) - (b.hits / b.hitsMax));
-
-		for (var i = 0; i < groupedCreeps[type].length; i++) {
-			let c = groupedCreeps[type][i];
-			let task = {
-				time: Game.time
-			};
-
-			if (woundedSquadMembers.length > 0) {
-				task.moveTo = woundedSquadMembers[0].pos;
-
-				if (c.pos.getRangeTo2(woundedSquadMembers[0]) <= 1) {
-					task.action = 'heal';
-					task.target = woundedSquadMembers[0].id;
-				} else if (c.pos.getRangeTo2(woundedSquadMembers[0]) <= 3) {
-					task.action = 'rangedHeal';
-					task.target = woundedSquadMembers[0].id;
-				} else {
-					let targets = _.filter(woundedSquadMembers, (w) => c.pos.getRangeTo2(w) <= 1);
-					if (targets.length > 0) {
-						task.action = 'heal';
-						task.target = targets[0].id;
-					} else {
-						targets = _.filter(woundedSquadMembers, (w) => c.pos.getRangeTo2(w) <= 3);
-						if (targets.length > 0) {
-							task.action = 'rangedHeal';
-							task.target = targets[0].id;
-						}
-					}
-				}
-			} else if (c.name !== captain.name) {
-				task.moveTo = captain.pos;
-			}
-
-			c.memory.task = task;
-		}
-	}
-
-	type = 'guard';
-	if (groupedCreeps[type] && groupedCreeps[type].length > 0) {
-		let nearbyEnemies = captain.pos.findInRange(FIND_HOSTILE_CREEPS, 7, 
-			{ filter: (c) => {
-					if (GameState.allies.indexOf(c.owner.username) >= 0) {
-						return false;
-					} else {
-						if (captain.pos.findClosestByPath(c)) {
-							return true;
-						} else {
-							return false;
-						}
-					}
-				}
-			});
-
-		let dismantlersSettled = _.filter(groupedCreeps['dismantler'], 
-			(c) => c.pos.getRangeTo2(breachTarget) > 1
-		).length === 0;
-		console.log('dismantlersSettled: ' + dismantlersSettled);
-
-		for (var i = 0; i < groupedCreeps[type].length; i++) {
-			let c = groupedCreeps[type][i];
-			let task = {
-				time: Game.time
-			};
-
-			let target;
-			if (nearbyEnemies.length > 0) {
-				target = c.pos.findClosestByRange(nearbyEnemies);
-				if (target) {
-					task.moveTo = target.pos;
-				}
-			} else {
-				if (dismantlersSettled && c.pos.getRangeTo2(breachTarget) > 1) {
-					task.moveTo = breachTarget.pos;
-				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
-					task.moveTo = captain.pos;
-					task.moveRange = 2;
-				}
-			}
-
-			if (target && c.pos.getRangeTo2(target) <= 1) {
-				task.action = 'attack';
-				task.target = target.id;
-			} else {
-				let targets = c.pos.findInRange(FIND_HOSTILE_CREEPS, 1, 
-					{ filter: (c) => {
-							if (GameState.allies.indexOf(c.owner.username) >= 0) {
-								return false;
-							} else {
-								return true;
-							}
-						}
-					});
-				if (targets.length > 0) {
-					targets.sort((a,b) => a.hits - b.hits);
-					task.action = 'attack';
-					task.target = targets[0].id;
-				} else {
-					if (c.pos.getRangeTo2(breachTarget) <= 1) {
-						task.action = 'attack';
-						task.target = breachTarget.id;
-					} else {
-						targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 });
-						if (targets.length > 0) {
-							targets.sort((a,b) => a.hits - b.hits);
-							task.target = targets[0].id;
-							task.action = 'attack';
-						}
-					}
-				}
-			}
-
-			c.memory.task = task;
-		}
-	}
-
-	type = 'ranger';
-	if (groupedCreeps[type] && groupedCreeps[type].length > 0) {
-		let nearbyEnemies = captain.pos.findInRange(FIND_HOSTILE_CREEPS, 7, 
-			{ filter: (c) => {
-					if (GameState.allies.indexOf(c.owner.username) >= 0) {
-						return false;
-					} else {
-						return true;
-					}
-				}
-			});
-
-		for (var i = 0; i < groupedCreeps[type].length; i++) {
-			let c = groupedCreeps[type][i];
-			let task = {
-				time: Game.time
-			};
-
-			if (nearbyEnemies.length > 0) {
-				target = c.pos.findClosestByRange(nearbyEnemies);
-				if (target) {
-					task.moveTo = target.pos;
-				}
-			} else {
-				if (c.pos.getRangeTo2(breachTarget) > 3) {
-					task.moveTo = breachTarget.pos;
-					task.moveRange = 3;
-				} else if (c.name !== captain.name && c.pos.getRangeTo2(captain) > 3) {
-					task.moveTo = captain.pos;
-					task.moveRange = 2;
-				} else {
-					c.fleeFrom(c.room.find(FIND_CREEPS), 2);
-				}
-			}
-
-			if (true) {
-				task.action = 'rangedAttack';
-				task.target = breachTarget.id;
-			} else {
-				task.action = 'rangedMassAttack';
-			}
-
-			c.memory.task = task;
-		}
-	}
-
-	if (captain.memory.task && captain.memory.task.moveTo) {
-		//delete captain.memory.task.moveTo;
-	}
-
-	squadCreeps.forEach(function(c) {
-		executeCreepTask(c);
-	});
 }
 
 

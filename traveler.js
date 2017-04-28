@@ -132,7 +132,7 @@ class Traveler {
       if (room.name === destination.roomName && options.forbidEdges) {
         let exits = Game.map.describeExits(room.name);
         for (let direction in exits) {
-          if (!allowedRooms[exits[direction]]) {
+          if (!allowedRooms || !allowedRooms[exits[direction]]) {
             // the exit doesnt lead to a room on the path
             let exitPositions = room.find(direction);
             exitPositions.forEach((pos) => matrix.set(pos.x, pos.y, 100));

@@ -10,17 +10,17 @@ let roleTrucker = {
   run: profiler.registerFN(function(creep) {
     let task = "";
 
-    if(creep.memory.delivering && creep.carry.energy == 0) {
+    if(creep.memory.delivering && _.sum(creep.carry) == 0) {
       creep.memory.delivering = false;
       if (creep.memory.distanceToTarget && creep.memory.distanceToTarget > 1) {
-        if (creep.memory.distanceToTarget * 2 + 20 < creep.ticksToLive) {
+        if (creep.memory.distanceToTarget * 2 + 20 > creep.ticksToLive) {
           creep.memory.role = 'suicide';
           console.log('Trucker has ' + creep.ticksToLive + ' TTL. Cannot make it there and back again.'
             + ' Distance: ' + creep.memory.distanceToTarget);
         }
       }
     }
-    if(!creep.memory.delivering && creep.carry.energy == creep.carryCapacity) {
+    if(!creep.memory.delivering && _.sum(creep.carry) == creep.carryCapacity) {
       creep.memory.delivering = true;
     }
 
@@ -33,6 +33,7 @@ let roleTrucker = {
 
       if (storage) {
         for (let res in creep.carry) {
+          if (!creep.carry[res]) { continue; }
           if (creep.transfer(storage, res) === ERR_NOT_IN_RANGE) {
             creep.travelTo(storage, { range: 1 });
           } else {
@@ -54,7 +55,7 @@ let roleTrucker = {
         let targetStorage;
         if (targetRoom.terminal) {
           targetStorage = targetRoom.terminal
-        } if (targetRoom.storage) {
+        } else if (targetRoom.storage) {
           targetStorage = targetRoom.storage;
         } else {
           // look for containers?
@@ -63,6 +64,8 @@ let roleTrucker = {
         if (targetStorage) {
           if (targetStorage.store) {
             for (let res in targetStorage.store) {
+              if (!targetStorage.store[res]) { continue; }
+
               if (creep.withdraw(targetStorage, res) === ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetStorage, { range: 1 });
               } else {
@@ -78,7 +81,7 @@ let roleTrucker = {
       }        
     }
 
-    //creep.say();
+    creep.say('$$$', true);
   }, 'run:trucker'),
 
   determineBodyParts: function(room) {

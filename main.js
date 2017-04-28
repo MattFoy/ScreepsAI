@@ -80,7 +80,7 @@ module.exports.loop = function () { profiler.wrap(function() {
   modules.processCreeps();
 
   if (Game.time % 25 === 1) {
-    console.log("Generating build queue");
+    //console.log("Generating build queue");
     Memory.empire.buildQueues = {};
   }
 

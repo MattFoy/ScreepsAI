@@ -315,6 +315,8 @@ function initializeMyRoomMemory(room) {
 
   if (!room.memory.tradingPlan) { room.memory.tradingPlan = {}; }
 
+  if (!Memory.empire.buildQueues[room.name]) { Memory.empire.buildQueues[room.name] = []; }
+
   if (!room.memory.roleReservables) { room.memory.roleReservables = {}; }
 
   if (!room.memory.roleReservables['scout']) {

@@ -589,7 +589,9 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 			} else {
 				let targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 
 					&& s.structureType !== STRUCTURE_STORAGE 
-					&& s.structureType !== STRUCTURE_TERMINAL });
+					&& s.structureType !== STRUCTURE_TERMINAL
+					&& s.structureType !== STRUCTURE_ROAD
+					&& s.structureType !== STRUCTURE_CONTAINER });
 				if (targets.length > 0) {
 					targets.sort((a,b) => a.hits - b.hits);
 					task.target = targets[0].id;
@@ -653,7 +655,7 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 		let dismantlersSettled = _.filter(groupedCreeps['dismantler'], 
 			(c) => c.pos.getRangeTo2(target) > 1
 		).length === 0;
-		console.log('dismantlersSettled: ' + dismantlersSettled);
+		//console.log('dismantlersSettled: ' + dismantlersSettled);
 
 		for (var i = 0; i < groupedCreeps[type].length; i++) {
 			let c = groupedCreeps[type][i];
@@ -702,7 +704,9 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 					} else {
 						targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0
 							&& s.structureType !== STRUCTURE_STORAGE 
-							&& s.structureType !== STRUCTURE_TERMINAL });
+							&& s.structureType !== STRUCTURE_TERMINAL
+							&& s.structureType !== STRUCTURE_ROAD
+							&& s.structureType !== STRUCTURE_CONTAINER });
 						if (targets.length > 0) {
 							targets.sort((a,b) => a.hits - b.hits);
 							task.target = targets[0].id;
@@ -887,15 +891,9 @@ function runClearMode(campaign, squadCreeps, captain, waywardCreeps) {
 		}
 		if (targetRoom && !clearTarget) {
 			let structs = targetRoom.find(FIND_STRUCTURES);
-			let targets = _.filter(structs, (s) => s.structureType === STRUCTURE_SPAWN);
+			let targets = _.filter(structs, (s) => s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER);
 	    if (targets.length > 0) {
-	      clearTarget = targets[0];
-	    }
-	    if (!clearTarget) {
-	    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_TOWER)
-	    	if (targets.length > 0) {
-		      clearTarget = targets[0];
-		    }
+	      clearTarget = captain.pos.findClosestByPath(targets);
 	    }
 	    if (!clearTarget) {	
 	    	targets = _.filter(structs, (s) => s.structureType !== STRUCTURE_RAMPART 
@@ -906,7 +904,7 @@ function runClearMode(campaign, squadCreeps, captain, waywardCreeps) {
 	    		&& s.structureType !== STRUCTURE_CONTAINER
 	    		&& s.hits > 0)
 	    	if (targets.length > 0) {
-	        clearTarget = targets[0];
+	        clearTarget = captain.pos.findClosestByRange(targets);
 	      }
 	    }
 	    if (!clearTarget) {
@@ -1027,10 +1025,21 @@ function getBreachPath(entrancePoint, target) {
             // Can't walk through non-walkable buildings
             let cost = 255;
             if (struct.hits > 0) {
-              cost = Math.min(200, 10 + Math.round((struct.hits / maxHp) * 140));
-            } else {
-              
+              cost = Math.min(200, 10 + Math.round((struct.hits / maxHp) * 120));
             }
+
+            // let x1 = Math.min(0, struct.pos.x - 2);
+            // let y1 = Math.min(0, struct.pos.y - 2);
+            // let x2 = Math.max(50, struct.pos.x + 2);
+            // let y2 = Math.max(50, struct.pos.y + 2);
+            // for (var x = x1; x < x2; x++) {
+            // 	for (var y = y1; y < y2; y++) {
+            // 		if (!room.getPositionAt(x,y).isPathable()) {
+            // 			cost += 15;
+            // 		}
+            // 	}
+            // }
+
             costs.set(struct.pos.x, struct.pos.y, cost);
           }
         });
@@ -1054,7 +1063,7 @@ function getBreachPath(entrancePoint, target) {
 							let damageRatio = (towerDamage - minDamage) / (maxDamage - minDamage).toFixed(2);							
 							let currentCost = costs.get(x,y) || 0;
 
-							let newCost = Math.min(200, currentCost + Math.round(damageRatio * 20));
+							let newCost = Math.min(200, currentCost + Math.round(damageRatio * 10));
 							//console.log(currentCost + ' -> ' + newCost);
 							if (newCost > 0) {
 								costs.set(x, y, newCost);	

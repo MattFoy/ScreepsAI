@@ -1,4 +1,54 @@
-module.exports = {		
+module.exports = {
+
+	attackDuo: [
+		{ type: 'guard', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'medic', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+	],
+
+	boostedAttackDuo: [
+		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+	],
+
+	boostedAttackSquad: [
+		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+	],
+
+	boostedBreachSquad: [
+		{ type: 'dismantler', boosts: [TOUGH,WORK], body: Array(8).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(17).fill(WORK)) },
+		{ type: 'dismantler', boosts: [TOUGH,WORK], body: Array(8).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(17).fill(WORK)) },
+		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(8).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(17).fill(HEAL)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(8).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(17).fill(HEAL)) },
+	],
+
+	testComplexSquad: [
+		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
+		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ type: 'ranger', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(RANGED_ATTACK)) },
+		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+	],
+
+	testBoostedSquad: [
+		{ type: 'dismantler', boosts: [TOUGH,WORK], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(WORK)) },
+		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(WORK)) },
+		{ type: 'guard', boosts: [ATTACK], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
+		{ type: 'ranger', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(RANGED_ATTACK)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
+	],
+
+	// ===============================================
+
 	borderHarassment: [
 		{ position: 'borderHarassmentDismantler', body: [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK] },
 		{ position: 'borderHarassmentMedic', body: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL] },
@@ -44,27 +94,6 @@ module.exports = {
 	testSmallDismantlerSquad: [
 		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
 		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
-	],
-	
-	testComplexSquad: [
-		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
-		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
-		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(4).fill(MOVE)).concat(Array(3).fill(WORK)) },
-		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
-		{ type: 'guard', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
-		{ type: 'ranger', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(RANGED_ATTACK)) },
-		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
-		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
-		{ type: 'medic', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
-	],
-
-	testBoostedSquad: [
-		{ type: 'dismantler', boosts: [TOUGH,WORK], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(WORK)) },
-		{ type: 'dismantler', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(WORK)) },
-		{ type: 'guard', boosts: [ATTACK], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(ATTACK)) },
-		{ type: 'ranger', body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(RANGED_ATTACK)) },
-		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
-		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(1).fill(TOUGH).concat(Array(3).fill(MOVE)).concat(Array(2).fill(HEAL)) },
 	],
 	
 	smallRaid: [

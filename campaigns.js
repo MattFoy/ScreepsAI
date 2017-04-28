@@ -54,6 +54,10 @@ module.exports = function() {
 	        	// TODO: add skirmish mode to travel execution
 	        }
 	      } else if (campaign.status === 'running') {
+	      	if (!campaign.creepNotificationsDisabled) {
+	      		squadCreeps.forEach((c) => c.notifyWhenAttacked(false));
+	      		campaign.creepNotificationsDisabled = true;
+	      	}
 	        if (captain) {
 	        	processCampaign_running(campaign, squadCreeps, captain);
 	      	}
@@ -155,11 +159,11 @@ function campaignPreprocessor(campaign) {
   	switch (campaign.attackPlan.entrance) {
   		case FIND_EXIT_BOTTOM:
   			x = campaign.attackPlan.breachPath[0].x;
-  			y = 47;
+  			y = 2;
   			break;
   		case FIND_EXIT_TOP:
   			x = campaign.attackPlan.breachPath[0].x;
-  			y = 2;
+  			y = 47;
   			break;
   		case FIND_EXIT_LEFT:
   			x = 47;
@@ -217,13 +221,15 @@ function processCampaign_running(campaign, squadCreeps, captain) {
 		&& campaign.attackPlan.breachPoints.length > 0
 		&& campaign.attackPlan.breachPath
 		&& campaign.attackPlan.breachPath.length > 1) {
+		console.log('breach mode');
 		runBreachMode(campaign, squadCreeps, captain, waywardCreeps);
 	} else if (campaign.attackPlan 
 		&& (!campaign.attackPlan.breachPoints 
 			|| campaign.attackPlan.breachPoints.length === 0)) {
+		console.log('clear mode');
 		runClearMode(campaign, squadCreeps, captain, waywardCreeps);
 	} else {
-		console.log('No AttackPlan for ' + campaignName + '?!?!');
+		console.log('No AttackPlan for ' + '?!?!');
 	}
 	squadCreeps.forEach(function(c) {
 		if (c.name !== captain.name && !c.memory.task) {
@@ -242,6 +248,7 @@ function processCampaign_running(campaign, squadCreeps, captain) {
 
 
 function processCampaign_travelling(campaign, squadCreeps, captain) {
+	//return;
 	let waywardCreeps = [];
 	squadCreeps.forEach(function(c) {
 		if (c.pos.getRangeTo2(captain) > squadCreeps.length + 1) {
@@ -250,6 +257,7 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
 			console.log(c.name + " is wayward: " + JSON.stringify(c.pos));
 		}
 	});
+
 	if (campaign.attackPlan && campaign.attackPlan.entrancePoint) {
   	if (waywardCreeps.length === 0) {
   		_.filter(squadCreeps, 
@@ -266,17 +274,59 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
   		console.log(avgX + ',' + avgY);
   		squadCreeps.forEach(function(c) {
   			if (c.name !== captain.name 
-  				&& c.pos.getRangeTo2(captain) > 4) {
-  				c.travelTo(captain, { range: 4 });
+  				&& c.pos.getRangeTo2(captain) > squadCreeps.length) {
+  				c.moveTo(captain);
+  				delete c.memory._travel;
   			}
   		});
-  		captain.travelTo(captain.room.getPositionAt(avgX, avgY), { range: 2 });
-  	}		        	
+  		captain.travelTo(captain.room.getPositionAt(avgX, avgY), { range: 0 });
+  	}
+
+  	let woundedSquadMembers = _.filter(squadCreeps, (c) => c.hitsMax > c.hits)
+		woundedSquadMembers.sort((a,b) => (a.hits / a.hitsMax) - (b.hits / b.hitsMax));
+
 
   	let travelled = waywardCreeps.length === 0;
+
   	squadCreeps.forEach(function(c) {
   		if (c.pos.getRangeTo2(campaign.attackPlan.entrancePoint) > 5) {
   			travelled = false;
+  		}
+
+  		if (woundedSquadMembers.length > 0 && c.getActiveBodyparts(HEAL) > 0) {
+  			let distToWounded = c.pos.getRangeTo(woundedSquadMembers[0]);
+  			if (distToWounded <= 1) {
+  				c.heal(woundedSquadMembers[0]);
+  			} else if (distToWounded <= 3) {
+  				c.rangedHeal(woundedSquadMembers[0]);
+  			}
+  			c.moveTo(woundedSquadMembers[0]);
+  		}
+
+  		if (c.getActiveBodyparts(ATTACK) > 0) {
+  			let hostileCreeps = c.pos.findInRange(FIND_HOSTILE_CREEPS, 8, { filter: (hc) => 
+	  			GameState.allies.indexOf(hc.owner.username) === -1
+	  			&& _.filter(hc.body, (bp) => bp === ATTACK || bp === RANGED_ATTACK || bp === HEAL).length > 0 
+	  		});
+	  		if (hostileCreeps.length > 0) {
+	  			let closestHostileCreep = c.pos.findClosestByRange(hostileCreeps);
+	  			if (c.pos.getRangeTo(closestHostileCreep) <= 1) {
+	  				c.attack(closestHostileCreep);
+	  			} else {
+	  				c.moveTo(closestHostileCreep);
+	  				delete c.memory._travel;
+	  			}
+	  		}
+  		}
+
+
+  		if (c.hits < c.hitsMax) {
+  			let medics = _.filter(squadCreeps, (sc) => sc.getActiveBodyparts(HEAL) > 0);
+  			let closestMedic = c.pos.findClosestByRange(medics);
+  			if (c.pos.getRangeTo(closestMedic) < 2) {
+  				c.moveTo(closestMedic);
+  				delete c.memory._travel;
+  			}
   		}
   	});
 
@@ -408,7 +458,9 @@ function formulateAttackPlan(targetRoomName, entranceDir, revisedEntrancePoint) 
     //targetRoom.visual.text('e', pos.x, pos.y);
     
     //console.log(JSON.stringify(entrancePoint));
-    targetRoom.visual.text('E', entrancePoint);
+    try { targetRoom.visual.text('E', entrancePoint); } catch (e) { }
+
+    if (!target || !entrancePoint) { return; }
 
     let ret = getBreachPath(entrancePoint, target);
 
@@ -535,7 +587,9 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 				task.action = 'dismantle';
 				task.target = target.id;
 			} else {
-				let targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 });
+				let targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 
+					&& s.structureType !== STRUCTURE_STORAGE 
+					&& s.structureType !== STRUCTURE_TERMINAL });
 				if (targets.length > 0) {
 					targets.sort((a,b) => a.hits - b.hits);
 					task.target = targets[0].id;
@@ -582,6 +636,9 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 				}
 			} else if (c.name !== captain.name) {
 				task.moveTo = captain.pos;
+			} else {
+				task.moveTo = target.pos;
+				task.moveRange = 2;
 			}
 
 			c.memory.task = task;
@@ -590,19 +647,8 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 
 	type = 'guard';
 	if (groupedCreeps[type] && groupedCreeps[type].length > 0) {
-		let nearbyEnemies = captain.pos.findInRange(FIND_HOSTILE_CREEPS, 7, 
-			{ filter: (c) => {
-					if (GameState.allies.indexOf(c.owner.username) >= 0) {
-						return false;
-					} else {
-						if (captain.pos.findClosestByPath(c)) {
-							return true;
-						} else {
-							return false;
-						}
-					}
-				}
-			});
+		let nearbyEnemies = captain.pos.findInRange(FIND_HOSTILE_CREEPS, 8, 
+			{ filter: (c) => GameState.allies.indexOf(c.owner.username) === -1 && captain.pos.findPathTo(c) });
 
 		let dismantlersSettled = _.filter(groupedCreeps['dismantler'], 
 			(c) => c.pos.getRangeTo2(target) > 1
@@ -617,6 +663,7 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 
 			let target2;
 			if (nearbyEnemies.length > 0) {
+				console.log('Guard: enemies detected');
 				target2 = c.pos.findClosestByRange(nearbyEnemies);
 				if (target2) {
 					task.moveTo = target2.pos;
@@ -653,7 +700,9 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 						task.action = 'attack';
 						task.target = target.id;
 					} else {
-						targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0 });
+						targets = c.pos.findInRange(FIND_STRUCTURES, 1, { filter: (s) => s.hits > 0
+							&& s.structureType !== STRUCTURE_STORAGE 
+							&& s.structureType !== STRUCTURE_TERMINAL });
 						if (targets.length > 0) {
 							targets.sort((a,b) => a.hits - b.hits);
 							task.target = targets[0].id;
@@ -720,6 +769,15 @@ function processSquadCreeps(campaign, squadCreeps, captain, waywardCreeps, targe
 	}
 
 	squadCreeps.forEach(function(c) {
+		// emergency healing request
+		if (c.hits < c.hitsMax) {
+			let closestMedic = c.pos.findClosestByRange(groupedCreeps['medic']);
+			if (c.pos.getRangeTo(closestMedic) > 1) {
+				c.memory.task.moveTo = closestMedic.pos;
+				delete c.memory.task.moveRange;
+			}
+		}
+
 		executeCreepTask(c);
 	});
 }
@@ -744,11 +802,13 @@ function runBreachMode(campaign, squadCreeps, captain, waywardCreeps) {
 				breachTarget = breachPoint;
 			}
 		}
+	} else {
+		breachTarget = new RoomPosition(25, 25, campaign.target);
 	}
 
 	if (!breachTarget) {
-		delete campaign.breachPoints;
-		delete campaign.breachPath;
+		//delete campaign.breachPoints;
+		//delete campaign.breachPath;
 		return;
 	} else {
 		if (waywardCreeps.length === 0) {
@@ -820,6 +880,10 @@ function runClearMode(campaign, squadCreeps, captain, waywardCreeps) {
 		if (campaign.clearStructId) { 
 			clearTarget = Game.getObjectById(campaign.clearStructId);
 			if (!clearTarget) { delete campaign.clearStructId; }
+			if (clearTarget && !clearTarget.hits) { 
+				clearTarget = undefined;
+				delete campaign.clearStructId; 
+			}
 		}
 		if (targetRoom && !clearTarget) {
 			let structs = targetRoom.find(FIND_STRUCTURES);
@@ -828,19 +892,31 @@ function runClearMode(campaign, squadCreeps, captain, waywardCreeps) {
 	      clearTarget = targets[0];
 	    }
 	    if (!clearTarget) {
-	    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_TOWER)
+	    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_TOWER)
 	    	if (targets.length > 0) {
 		      clearTarget = targets[0];
 		    }
 	    }
 	    if (!clearTarget) {	
-	    	targets = _.filter(structs, (s) => s.structureType !== STRUCTURE_RAMPART || s.structureType !== STRUCTURE_WALL)
+	    	targets = _.filter(structs, (s) => s.structureType !== STRUCTURE_RAMPART 
+	    		&& s.structureType !== STRUCTURE_WALL
+	    		&& s.structureType !== STRUCTURE_ROAD
+	    		&& s.structureType !== STRUCTURE_STORAGE 
+	    		&& s.structureType !== STRUCTURE_TERMINAL 
+	    		&& s.structureType !== STRUCTURE_CONTAINER
+	    		&& s.hits > 0)
 	    	if (targets.length > 0) {
 	        clearTarget = targets[0];
 	      }
 	    }
+	    if (!clearTarget) {
+	    	targets = _.filter(structs, (s) => s.structureType === STRUCTURE_RAMPART)
+	    	if (targets.length > 0) {
+		      clearTarget = targets[0];
+		    }
+	    }
 		}
-		campaign.clearStructId = clearTarget.id;
+		if (clearTarget) { campaign.clearStructId = clearTarget.id; }
 	}
 
 	if (!clearTarget) {
@@ -890,6 +966,7 @@ function executeCreepTask(creep) {
         creep.travelTo(task.moveTo, { range: task.moveRange, ignoreCreeps: false });
       } else {
         creep.moveTo(new RoomPosition(task.moveTo.x, task.moveTo.y, task.moveTo.roomName));
+        delete creep.memory._travel;
       }
     }
 
@@ -1066,7 +1143,7 @@ function updateSquadStatus(campaign) {
   _.map(campaign.squad, (s) => {
     if (s.name === null) {
       s.status = 'unspawned';
-    } else if (!Game.creeps[s.name] && s.status !== 'dead') {
+    } else if (!Game.creeps[s.name] && s.status !== 'dead' && s.name !== '_dead_') {
       campaign.log += "\n[T+" + (Game.time - campaign.createdOn) + "] " + s.name + " died.";
       s.status = 'dead';
       s.name = '_dead_';

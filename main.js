@@ -89,80 +89,85 @@ module.exports.loop = function () { profiler.wrap(function() {
     if (Game.cpu.bucket < 4000 && Game.time % 3 === 0) { break; }
 
     let room = Game.rooms[roomName];
-    utilities.initializeRoomMemory(room);
+    
+    try { utilities.initializeRoomMemory(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
     
     if (Game.time % 25 === 1) {
-      utilities.generateBuildQueue(room);
+      try { utilities.generateBuildQueue(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
     }
 
     // Process my rooms
     if (room.controller && room.controller.my) {
-      utilities.initializeMyRoomMemory(room);
+      try { utilities.initializeMyRoomMemory(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       
       if (!room.memory.miningFlagsInitialized) {
-        utilities.setupMiningFlags(roomName);
+        try { utilities.setupMiningFlags(roomName); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
 
-      utilities.calculateHaulingEconomy(room);
+      try { utilities.calculateHaulingEconomy(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       
       if (Game.time % 5 === 2) {
-        utilities.calculateDefense(room);
+        try { utilities.calculateDefense(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
       
       if (Game.time % 373 === 13 && Game.cpu.bucket > 9000) {
-        utilities.generateUpgradeSweetSpots(room);
+        try { utilities.generateUpgradeSweetSpots(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
 
-      modules.processTowers(room);
-      modules.processLinks(room);
+      try { modules.processTowers(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
+      try { modules.processLinks(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
       if (Game.time % 10 === 7 && Game.cpu.bucket > 5000) {
-        modules.processLabs(room);
+        try { modules.processLabs(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
         //console.log(Game.cpu.getUsed());
       }
 
       if (Game.time % 7 === 2) {
-        modules.processSpawning(room);
+        try { modules.processSpawning(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
         //console.log(Game.cpu.getUsed());
       }
       if (Game.time % 8 === 2 && Game.cpu.bucket > 2000) {
-        utilities.setupTerminalTradingPlan(room);
+        try { utilities.setupTerminalTradingPlan(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
     
-      if (Game.cpu.bucket > 9000 
-        && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
-        && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
-        // unload it!
-        //console.log(room.name + ' has too much energy...');
-        let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my && r.storage && r.terminal 
-          && r.storage.store.energy && r.storage.store.energy < 400000 
-          && _.sum(r.terminal.store) < 200000);
-        if (destinationRooms.length > 0) {
-          destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
-            - (b.storage.store.energy ? b.storage.store.energy : 0));
-          //console.log(room.name + ' should send energy to ' + destinationRooms[0].name)
-          Game.sendEnergy(room.name, destinationRooms[0].name);
+      try {
+        if (Game.cpu.bucket > 9000 
+          && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
+          && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
+          // unload it!
+          //console.log(room.name + ' has too much energy...');
+          let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my && r.storage && r.terminal 
+            && r.storage.store.energy && r.storage.store.energy < 400000 
+            && _.sum(r.terminal.store) < 200000);
+          if (destinationRooms.length > 0) {
+            destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
+              - (b.storage.store.energy ? b.storage.store.energy : 0));
+            //console.log(room.name + ' should send energy to ' + destinationRooms[0].name)
+            Game.sendEnergy(room.name, destinationRooms[0].name);
+          }
         }
-      }
+      } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
       if (room.controller.level >= 8) {
-        modules.processObserver(room);
+        try { modules.processObserver(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
     } else {
       //console.log(roomName + " isn't mine.");
     }
   }
 
-  for (var i in GameState.constants) {
-    if (GameState.memory[GameState.constants[i]]) {
-      let json = JSON.stringify(GameState.memory[GameState.constants[i]]);
-      //console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
-      if ((json.length / 1024).toFixed(1) > 99) {
-        json = '';
+  try {
+    for (var i in GameState.constants) {
+      if (GameState.memory[GameState.constants[i]]) {
+        let json = JSON.stringify(GameState.memory[GameState.constants[i]]);
+        //console.log('Memory segment ' + i + ': ' + (json.length / 1024).toFixed(1) + '/100 KB' )
+        if ((json.length / 1024).toFixed(1) > 99) {
+          json = '';
+        }
+        RawMemory.segments[GameState.constants[i]] = json;
       }
-      RawMemory.segments[GameState.constants[i]] = json;
     }
-  }
+  } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
   if (Game.time % 12 === 4 && Game.cpu.bucket > 1000) {
     (function(){

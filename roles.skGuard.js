@@ -29,7 +29,7 @@ let roleSKGuard = {
           if (creep.memory.targetSK) {
             target = Game.getObjectById(creep.memory.targetSK);
             if (!target) {
-              creep.memory.targetSK = null;
+              creep.memory.targetSK = undefined;
             }
           }
 
@@ -37,11 +37,13 @@ let roleSKGuard = {
             let targets = creep.room.find(FIND_HOSTILE_CREEPS);
             if (targets.length > 0) {
               target = creep.pos.findClosestByPath(targets);
-              creep.memory.targetSK = target.id;
+              if (target) { creep.memory.targetSK = target.id; }
             }
           }
           
-          target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+          if (!target) {
+            target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+          }
 
           if (target) {
             if (creep.memory.targetSKLair) {

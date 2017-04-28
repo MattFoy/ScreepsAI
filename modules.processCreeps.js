@@ -123,11 +123,7 @@ function processCreeps() {
         //console.log(creep.name + ', ' + creep.memory.role + ', stopped moving.');
         delete creep.memory._travel;
       }
-    } catch (e) {
-      console.log("A creep threw an exception: " + name);
-      console.log(e);
-      throw e;
-    }
+    } catch (err) { Game.notify(err.stack); console.log(err.stack); }
   }
 }
 processCreeps = profiler.registerFN(processCreeps, 'processCreeps');

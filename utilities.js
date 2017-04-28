@@ -432,7 +432,7 @@ function generateBuildQueue(room) {
   // Add repairable structures
   let structures = room.find(FIND_STRUCTURES, { filter: function(s) {
     if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) 
-      && s.hits < (s.hitsMax * 0.5)) {
+      && s.hits < (s.hitsMax * 0.6)) {
       // a container or road in need of repair
       return true;
     } else if (room.controller && room.controller.my) {

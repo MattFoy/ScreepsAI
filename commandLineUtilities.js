@@ -4,6 +4,61 @@ module.exports = function() {
 
 
 
+  Game.moveSquad = function(campaignName, direction) {
+    _.map(_.filter(Game.creeps, (c) => c.memory.campaign === campaignName), (c) => c.move(direction));
+  }
+
+
+
+
+  Game.pilferRoom = function(roomName, maxSpawn) {
+    if (!maxSpawn) { maxSpawn = 10; }
+    let spawned = 0;
+
+    function getClosestRoom(targetRoomName) {
+      let closestRoom = undefined;
+      let distanceToClosestRoom = 100;
+      for (let roomName in Game.rooms) {
+        let room = Game.rooms[roomName];
+        if (room.controller && room.controller.my && room.storage && room.terminal) {
+          let distanceToRoom = room.getDistanceTo(targetRoomName);
+          if (distanceToRoom < distanceToClosestRoom) {
+            distanceToClosestRoom = distanceToRoom;
+            closestRoom = roomName;
+          }
+        }
+      }
+      return closestRoom;
+    }
+
+    let origin = Game.rooms[getClosestRoom(roomName)];
+    console.log('Pilfering ' + roomName + ' from ' + origin.name);
+
+    if (origin && origin.controller && origin.controller.my) {
+      console.log("Spawning thieves for: " + origin.name);
+      for (var name in Game.spawns) {
+        let spawn = Game.spawns[name];
+        if (!spawn.spawning && maxSpawn > 0) {
+          if (spawn.room.getDistanceTo(roomName) <= 14) {
+            let result = spawn.createCreep(
+              Array(25).fill(CARRY).concat(Array(25).fill(MOVE))
+              , undefined, { origin: origin.name, role: 'trucker', returnToOrigin: true, targetRoom: roomName });
+            if (typeof result === 'string') { maxSpawn--; spawned++; }
+            console.log(spawn.name + ': ' + result);
+          }  
+        }
+      }
+      console.log('Spawned ' + spawned + ' raiders.');
+      return spawned;
+    } else {
+      console.log("Invalid room: " + roomName);
+      return 0;
+    }
+  }
+
+
+
+
   Game.unclaimRoom = function(roomName) {
     let room = Game.rooms[roomName];
     if (!room || !room.controller || !room.controller.my) { 

@@ -59,9 +59,9 @@ module.exports.loop = function () { profiler.wrap(function() {
   require('commandLineUtilities')();
   require('campaigns')();
 
-  utilities.initGameState();
+  try { utilities.initGameState(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
   
-  utilities.pruneMemory();
+  try { utilities.pruneMemory(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
   console.log(' ============================== ' 
     + 'Tick# ' + Game.time 
@@ -73,15 +73,15 @@ module.exports.loop = function () { profiler.wrap(function() {
   
   if (Memory.empire && Memory.empire.campaigns) {
     for (let campaignName in Memory.empire.campaigns) {
-      Game.campaigns.process(campaignName);
+      try { Game.campaigns.process(campaignName); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
     }
   }
 
-  modules.processCreeps();
+  try { modules.processCreeps(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
   if (Game.time % 25 === 1) {
     //console.log("Generating build queue");
-    Memory.empire.buildQueues = {};
+    try { Memory.empire.buildQueues = {}; } catch (err) { Game.notify(err.stack); console.log(err.stack); }
   }
 
   for(let roomName in Game.rooms) {
@@ -136,9 +136,10 @@ module.exports.loop = function () { profiler.wrap(function() {
           && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
           // unload it!
           //console.log(room.name + ' has too much energy...');
-          let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my && r.storage && r.terminal 
+          let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my 
+            && r.storage && r.terminal 
             && r.storage.store.energy && r.storage.store.energy < 400000 
-            && _.sum(r.terminal.store) < 200000);
+            && _.sum(r.terminal.store) < 250000);
           if (destinationRooms.length > 0) {
             destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
               - (b.storage.store.energy ? b.storage.store.energy : 0));
@@ -205,6 +206,10 @@ module.exports.loop = function () { profiler.wrap(function() {
   if (Memory.empire.helpRequired > 0) {
     Memory.empire.helpRequired -= 
       Game.spawnHelpFor('W88S36', 1, 'builder');
+  }
+
+  if (Game.time % 600 === 0) { 
+    Game.pilferRoom('W82S38', 5);
   }
 
 });}

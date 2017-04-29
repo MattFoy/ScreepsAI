@@ -301,6 +301,7 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
   				c.rangedHeal(woundedSquadMembers[0]);
   			}
   			c.moveTo(woundedSquadMembers[0]);
+  			delete c.memory._travel;
   		}
 
   		if (c.getActiveBodyparts(ATTACK) > 0) {
@@ -310,6 +311,7 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
 	  		});
 	  		if (hostileCreeps.length > 0) {
 	  			let closestHostileCreep = c.pos.findClosestByRange(hostileCreeps);
+	  			console.log('Enemies!')
 	  			if (c.pos.getRangeTo(closestHostileCreep) <= 1) {
 	  				c.attack(closestHostileCreep);
 	  			} else {
@@ -318,7 +320,6 @@ function processCampaign_travelling(campaign, squadCreeps, captain) {
 	  			}
 	  		}
   		}
-
 
   		if (c.hits < c.hitsMax) {
   			let medics = _.filter(squadCreeps, (sc) => sc.getActiveBodyparts(HEAL) > 0);

@@ -433,6 +433,9 @@ function generateBuildQueue(room) {
 
   // Add repairable structures
   let structures = room.find(FIND_STRUCTURES, { filter: function(s) {
+    // that one pesky road in W84S43
+    if (s.id === '58e935067ab5713c4cff24fb') { return false; }
+
     if ((s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_CONTAINER) 
       && s.hits < (s.hitsMax * 0.6)) {
       // a container or road in need of repair

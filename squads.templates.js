@@ -10,6 +10,15 @@ module.exports = {
 		{ type: 'medic', boosts: [TOUGH,HEAL], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
 	],
 
+	attackSquad: [
+		{ type: 'guard', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'guard', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'guard', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
+		{ type: 'medic', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+		{ type: 'medic', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+		{ type: 'medic', body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(HEAL)) },
+	],
+
 	boostedAttackSquad: [
 		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },
 		{ type: 'guard', boosts: [ATTACK,TOUGH], body: Array(10).fill(TOUGH).concat(Array(25).fill(MOVE)).concat(Array(15).fill(ATTACK)) },

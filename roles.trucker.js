@@ -50,7 +50,10 @@ let roleTrucker = {
     } else {
       let targetRoom = Game.rooms[creep.memory.targetRoom];
       if (!targetRoom) {
-        creep.travelTo({x:25, y:25, roomName:creep.memory.targetRoom});
+        if (!creep.memory.travelToTarget) {
+          creep.memory.travelToTarget = {x:25, y:25, roomName:creep.memory.targetRoom};
+        }
+        creep.travelTo(creep.memory.travelToTarget);
       } else {
         let targetStorage;
         if (targetRoom.terminal) {
@@ -60,6 +63,11 @@ let roleTrucker = {
         } else {
           // look for containers?
         }
+        if (!creep.memory.travelToTarget) {
+          creep.memory.travelToTarget = targetStorage.pos;
+        } else if (targetStorage.pos.getRangeTo2(creep.memory.travelToTarget) > 1) {
+          creep.memory.travelToTarget = targetStorage.pos;
+        }
 
         if (targetStorage) {
           if (targetStorage.store) {
@@ -67,7 +75,7 @@ let roleTrucker = {
               if (!targetStorage.store[res]) { continue; }
 
               if (creep.withdraw(targetStorage, res) === ERR_NOT_IN_RANGE) {
-                creep.travelTo(targetStorage, { range: 1 });
+                creep.travelTo(creep.memory.travelToTarget, { range: 1 });
               } else {
                 if (!creep.memory.distanceToTarget) {
                   creep.memory.distanceToTarget = 1;

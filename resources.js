@@ -45,8 +45,8 @@ function summarize_room_internal(room) {
     const towers = room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_TOWER && s.my });
     const num_towers = towers ? towers.length : 0;
     const tower_energy = _.sum(towers, t => t.energy);
-    const const_sites = room.find(FIND_CONSTRUCTION_SITES);
-    const my_const_sites = room.find(FIND_CONSTRUCTION_SITES, { filter: cs => cs.my });
+    const const_sites = Memory.empire.buildQueues[room.name];
+    const my_const_sites = const_sites;
     const num_construction_sites = const_sites.length;
     const num_my_construction_sites = my_const_sites.length;
     const has_terminal = room.terminal != null;

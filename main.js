@@ -14,11 +14,24 @@ TODO:
   - clear mode
 
 * Power Bank code
+  - RCL 7+ rooms should generate a list of highway rooms withing a path of 7 they can send troops to
+    - (recursion on map.describeExits 7 times)
+  - if those rooms havent been visible in >100 ticks, observer them
+  - if power bank is spotted, register the location and powerbank id in Memory.empire.powerBankOps
+
+  - create PowerBankBruiser, PowerBankHealer, and PowerBankHauler roles
+    - no need to rally
+    - PBH - very simple, go to power bank, heal nearby injured friendly creeps
+    - PBB - very simple, go to power bank, attack it if there's at least 1 nearby PBH
+    - PBH - spawn when PowerBank is dead or has less than X hp (calculate ticks to spawn + travel + 100?)
+       - quota is power amount / carry capacity (~1250)
 
 * remote defender squads ( >1 )
+ - handle "escalations" (i.e. other players)
 
 * Finish chemist code
-  -- load nukers
+  -- load nukers with energy
+    - account for G being in a weird path (w.r.t. labs)
 
 * Set up link miners 
   - reduce hauling required
@@ -201,7 +214,7 @@ profiler.wrap(function() {
 
   if (Game.time % 600 === 0) { 
     //Game.pilferRoom('W83S36', 4);
-    //Game.pilferRoom('W82S38', 4);
+    Game.pilferRoom('W82S38', 7);
   }
 
 });}

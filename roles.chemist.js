@@ -76,7 +76,6 @@ function getChemistTask(creep) {
     return;
   }
 
-  console.log("[Chemist " + creep.name + '] getting task');
   if (creep.room.memory.science) {
     if (!creep.memory.chemistry) { 
       creep.memory.chemistry = {}; 

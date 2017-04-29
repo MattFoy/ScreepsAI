@@ -28,9 +28,9 @@ let roleBellhop = {
 
     let linkNeedsTending = false;
     let linkNeedsFilling = false;
-    if (creep.room.memory.receivingLink) {
-      let link = Game.getObjectById(creep.room.memory.receivingLink);
-      let controllerLink = Game.getObjectById(creep.room.memory.controllerLink);
+    if (creep.room.memory.links.receiver) {
+      let link = Game.getObjectById(creep.room.memory.links.receiver);
+      let controllerLink = Game.getObjectById(creep.room.memory.links.controller);
       if (controllerLink) {
         let links = creep.room.find(FIND_MY_STRUCTURES, {
           filter: function(object) {
@@ -155,15 +155,15 @@ let roleBellhop = {
     }
 
     if (creep.memory.bellhopTask === "lnk_i") {
-      let link = Game.getObjectById(creep.room.memory.receivingLink);
+      let link = Game.getObjectById(creep.room.memory.links.receiver);
       if (!link) { 
           creep.memory.bellhopTask = 'idle';
-          creep.room.memory.receivingLink = undefined;
+          creep.room.memory.links.receiver = undefined;
           return;
       }
       if (creep.memory.carrying) {
         if (creep.transfer(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y), {range: 0});
+          creep.travelTo(creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y), {range: 0});
         }
       } else {
         creep.goGetEnergy(true, true);
@@ -177,22 +177,22 @@ let roleBellhop = {
         }
       }
     } else if (creep.memory.bellhopTask === "lnk_o") {
-      let link = Game.getObjectById(creep.room.memory.receivingLink);
+      let link = Game.getObjectById(creep.room.memory.links.receiver);
       if (!link) { 
-        creep.room.memory.receivingLink = undefined; 
+        creep.room.memory.links.receiver = undefined; 
         creep.memory.bellhopTask = 'idle'; 
       } else {
         if (creep.memory.carrying) {
           if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
-            let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.links.receiverSpot));
+            let roomPos = creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y);
             //console.log(JSON.stringify(roomPos));
             creep.travelTo(roomPos, {range: 0});
           }
         } else {
           if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.linkSweetSpot));
-            let roomPos = creep.room.getPositionAt(creep.room.memory.linkSweetSpot.x, creep.room.memory.linkSweetSpot.y);
+            //console.log('bellhop: ' + JSON.stringify(creep.room.memory.links.receiverSpot));
+            let roomPos = creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y);
             //console.log(JSON.stringify(roomPos));
             creep.travelTo(roomPos, {range: 0});
           }

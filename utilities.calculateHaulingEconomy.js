@@ -3,6 +3,11 @@ module.exports = function(room) {
   if (!room.memory.hauling) { room.memory.hauling = {}; }
   if (!room.memory.hauling.sourceDetails) { room.memory.hauling.sourceDetails = {}; }
 
+  let inputLinks = [];
+  if (room.memory.links && room.memory.links.inputs && room.memory.links.inputs.length > 0) {
+    inputLinks = _.map(room.memory.links.inputs, (linkId) => Game.getObjectById(linkId));
+  }
+
   for(var i = 0; i < room.memory.roleReservables['miner'].length; i++) {
     let flag = Game.flags[room.memory.roleReservables['miner'][i]];
     if (!flag || !flag.room) { 
@@ -63,6 +68,11 @@ module.exports = function(room) {
     let carryRequired = energyPerTick * room.memory.hauling.sourceDetails[flag.name].pathCost * 2;
 
     //console.log(energyPerTick + ' -> ' + carryRequired);
+
+    if (inputLinks.length > 0 && _.filter(inputLinks, (link) => link && link.pos.getRangeTo(flag) === 1).length > 0) {
+      //console.log(flag.name + ' -> link mine');
+      carryRequired = 0;
+    }
 
     room.memory.hauling.sourceDetails[flag.name].energyPerTick = energyPerTick;
     room.memory.hauling.sourceDetails[flag.name].carryRequired = carryRequired;

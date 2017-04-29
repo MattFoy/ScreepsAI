@@ -70,7 +70,7 @@ module.exports = function() {
       let controller = Game.rooms[creep.memory.origin].controller;
       creep.memory.inUpgradeSweetSpot = false;
       let ignoreCreeps = true;
-      if (creep.room.name === creep.memory.origin && creep.pos.getRangeTo(controller) < 4) {
+      if (creep.room.name === creep.memory.origin && creep.pos.getRangeTo(controller) < 6) {
         ignoreCreeps = false;
       }
       if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {

@@ -1,5 +1,4 @@
 const profiler = require('screeps-profiler');
-const SCM = require('_SupplyChainManagement');
 
 function processLabs(room) {
   let labs = room.find(FIND_STRUCTURES, {filter: function(s) {
@@ -90,9 +89,9 @@ function processLabs(room) {
       let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
       let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
 
-      if (SCM.reactions[room.name] && SCM.reactions[room.name].length === 2) {
-        room.memory.science.resource1 = SCM.reactions[room.name][0];
-        room.memory.science.resource2 = SCM.reactions[room.name][1];
+      if (Memory.empire.scm.reactions[room.name] && Memory.empire.scm.reactions[room.name].length === 2) {
+        room.memory.science.resource1 = Memory.empire.scm.reactions[room.name][0];
+        room.memory.science.resource2 = Memory.empire.scm.reactions[room.name][1];
       } else {
         delete room.memory.science.resource1;
         delete room.memory.science.resource2;

@@ -19,6 +19,11 @@ let roleTrucker = {
             + ' Distance: ' + creep.memory.distanceToTarget);
         }
       }
+
+      if (Game.cpu.bucket < 4000) {
+        // bucket's hurtin' abort, abort!
+        creep.memory.role = 'suicide';
+      }
     }
     if(!creep.memory.delivering && _.sum(creep.carry) == creep.carryCapacity) {
       creep.memory.delivering = true;
@@ -56,20 +61,23 @@ let roleTrucker = {
         creep.travelTo(creep.memory.travelToTarget);
       } else {
         let targetStorage;
-        if (targetRoom.terminal) {
-          targetStorage = targetRoom.terminal
-        } else if (targetRoom.storage) {
+
+        if (targetRoom.terminal && _.sum(targetRoom.terminal.store) > 0) {
+          targetStorage = targetRoom.terminal;
+          creep.memory.travelToTarget = targetRoom.terminal.pos;
+        } else if (targetRoom.storage && _.sum(targetRoom.storage.store) > 0) {
           targetStorage = targetRoom.storage;
+          creep.memory.travelToTarget = targetRoom.storage.pos;
         } else {
           // look for containers?
         }
-        if (!creep.memory.travelToTarget) {
-          creep.memory.travelToTarget = targetStorage.pos;
-        } else if (targetStorage.pos.getRangeTo2(creep.memory.travelToTarget) > 1) {
-          creep.memory.travelToTarget = targetStorage.pos;
-        }
-
+        
         if (targetStorage) {
+          if (!creep.memory.travelToTarget) {
+            creep.memory.travelToTarget = targetStorage.pos;
+          } else if (targetStorage.pos.getRangeTo2(creep.memory.travelToTarget) > 1) {
+            creep.memory.travelToTarget = targetStorage.pos;
+          }
           if (targetStorage.store) {
             for (let res in targetStorage.store) {
               if (!targetStorage.store[res]) { continue; }
@@ -85,6 +93,8 @@ let roleTrucker = {
               break;
             }
           }
+        } else {
+
         }
       }        
     }

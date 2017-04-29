@@ -12,13 +12,40 @@ let roleMiner = {
     if (!creep.memory.roleSpecificFlag) {
       creep.reserveRoleSpecificFlag(Game.rooms[creep.memory.origin].memory.roleReservables['miner']);
     }
-    
-    if (creep.memory.roleSpecificFlag && creep.ticksToLive) {
 
+    // only process "proper" miners
+    if (creep.memory.roleSpecificFlag && creep.ticksToLive) {
+      // get the flag object
       let flag = Game.flags[creep.memory.roleSpecificFlag];
       if (!flag) {
         console.log(creep.memory.roleSpecificFlag + "")
         return;
+      }
+
+      if (creep.memory.linkMiner === undefined && creep.room.name === creep.memory.origin
+        && creep.room.memory.links && creep.room.memory.links.inputs && creep.room.memory.links.inputs.length > 0) {
+        let inputLinks = _.filter(_.map(creep.room.memory.links.inputs, 
+          (linkId) => Game.getObjectById(linkId)
+        ), (link) => flag.pos.getRangeTo(link) === 1);
+        if (inputLinks.length > 0) {
+          creep.memory.linkMiner = true;
+          creep.memory.linkId = inputLinks[0].id;
+        } else {
+          creep.memory.linkMiner = false;
+        }
+      }
+
+      if (creep.memory.linkMiner === true) {
+        if (creep.memory.harvestPerTick === undefined) {
+          creep.memory.harvestPerTick = _.filter(creep.body, (bp) => bp.type === WORK).length * HARVEST_POWER;
+        }
+
+        if(creep.memory.storing && _.sum(creep.carry) < creep.carryCapacity - creep.memory.harvestPerTick) {
+          creep.memory.storing = false;
+        }
+        if(!creep.memory.storing && _.sum(creep.carry) + creep.memory.harvestPerTick > creep.carryCapacity) {
+          creep.memory.storing = true;
+        }
       }
 
       if (!creep.memory.sourceReached && creep.room.name === flag.pos.roomName && creep.pos.getRangeTo(flag) < 2) {
@@ -56,6 +83,14 @@ let roleMiner = {
 
         if (creep.memory.sourceId) {
           let source = Game.getObjectById(creep.memory.sourceId);
+          
+          if (creep.memory.linkMiner === true && creep.memory.storing && creep.memory.linkId) {
+            let link = Game.getObjectById(creep.memory.linkId);
+            if (link) {
+              creep.transfer(link, RESOURCE_ENERGY);
+            }
+          }
+
           if (source.energy > 0) {
             //creep.say('Mining');
             creep.harvest(source); 
@@ -164,11 +199,20 @@ let roleMiner = {
       } else {
         // a claimed room, so don't go up to the "3000" energy case, 
         // just 1300 since containers decay less rapidly
+        if (room.memory.links && room.memory.links.inputs && room.memory.links.inputs.length > 0) {
+          let inputLinks = _.map(room.memory.links.inputs, (linkId) => Game.getObjectById(linkId));
+          if (_.filter(inputLinks, (link) => flag.pos.getRangeTo(link) === 1).length > 0) {
+            if (maxEnergy >= 800) {
+              return Array(6).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(3).fill(MOVE));
+            }
+          }
+        }
+
         if (maxEnergy >= 1300) {
           return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
         } else if (maxEnergy >= 800) {
           return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));
-        }
+        }          
       }
     } 
 

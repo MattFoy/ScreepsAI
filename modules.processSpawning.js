@@ -1,6 +1,13 @@
 const profiler = require('screeps-profiler');
 const roles = require('roles');
 function processSpawning(room) {
+  let spawns = _.filter(Game.spawns, (s) => s.pos.roomName === room.name && !s.spawning);
+  
+  if (!spawns || !spawns.length) { 
+    // no free spawns, spare ourselves the CPU hit
+    return;
+  }
+
   let creepsInRoom = _.filter(Game.creeps, (c) => c.memory.origin === room.name)
   let rolesInRoom = _.groupBy(creepsInRoom, function(c) { return c.memory.role });  
   var spawnQueue = [];
@@ -33,7 +40,7 @@ function processSpawning(room) {
   spawnQueue.sort((a,b) => (roles[a.memory.role].determinePriority ? roles[a.memory.role].determinePriority(room, rolesInRoom) : 100)
           - (roles[b.memory.role].determinePriority ? roles[b.memory.role].determinePriority(room, rolesInRoom) : 100));
   
-  _.filter(Game.spawns, (s) => (s.pos.roomName === room.name)).forEach(function(spawn) {
+  _.filter(Game.spawns, (s) => s.pos.roomName === room.name).forEach(function(spawn) {
     if (!spawn.spawning && spawnQueue.length > 0) {
       let params = spawnQueue.shift();
       let newName = spawn.createCreep(params.body, params.name, params.memory);

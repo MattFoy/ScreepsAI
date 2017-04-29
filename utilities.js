@@ -311,9 +311,9 @@ function initializeMyRoomMemory(room) {
   
   if (!room.memory.hauling) { room.memory.hauling = {}; }
 
-  if (room.memory.energySourceFlags_details) { delete room.memory.energySourceFlags_details; }
-
   if (!room.memory.tradingPlan) { room.memory.tradingPlan = {}; }
+
+  if (!room.memory.links) { room.memory.links = {}; }
 
   if (!Memory.empire.buildQueues[room.name]) { Memory.empire.buildQueues[room.name] = []; }
 
@@ -627,6 +627,25 @@ function setupTerminalTradingPlan(room) {
 }
 setupTerminalTradingPlan = profiler.registerFN(setupTerminalTradingPlan, 'setupTerminalTradingPlan');
 
+function giveAwayEnergy(room) {
+  if (room && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
+    && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
+
+    let destinationRooms = _.filter(Game.rooms, 
+      (r) => r.controller && r.controller.my 
+      && r.storage && r.terminal 
+      && r.storage.store.energy && r.storage.store.energy < 400000 
+      && _.sum(r.terminal.store) < 250000);
+    
+    if (destinationRooms.length > 0) {
+      destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
+        - (b.storage.store.energy ? b.storage.store.energy : 0));
+      Game.sendEnergy(room.name, destinationRooms[0].name);
+    }
+  }
+}
+giveAwayEnergy = profiler.registerFN(giveAwayEnergy, 'giveAwayEnergy');
+
 module.exports = {
   bodyCost: function(body) {
     return _.reduce(body, (memo,bodyPart) => memo + Number.parseInt(BODYPART_COST[bodyPart]), 0);
@@ -643,4 +662,5 @@ module.exports = {
   initGameState: initGameState,
   generateUpgradeSweetSpots: generateUpgradeSweetSpots,
   setupTerminalTradingPlan: setupTerminalTradingPlan,
+  giveAwayEnergy: giveAwayEnergy,
 };

@@ -22,18 +22,8 @@ let roleSmartHauler = {
       creep.memory.replaceBefore = creep.body.length * 3;
     }
 
-    if (creep.memory.storing && creep.carry.energy > 0) {
-      let links = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, { filter: function(s) { return s.structureType === STRUCTURE_LINK && s.energy < s.energyCapacity }});
-      if (links.length > 0) {
-        links.sort((a,b) => a.energy - b.energy);
-        let link = links[0];
-        let linkCapacity = (link.energyCapacity - link.energy);
-        if (linkCapacity + (link.cooldown < 5 ? link.energyCapacity : 0) + link.energyCapacity >= creep.carry.energy) {
-          if (creep.transfer(link, RESOURCE_ENERGY) == 0) {
-            creep.memory.storing = creep.carry.energy > 0;
-          }
-        }
-      }
+    if (creep.memory.storing && creep.carry.energy > 0 && creep.room.name === creep.memory.origin) {
+      opportunisticLinkDump(creep);
     }
 
     // Toggle states
@@ -62,148 +52,16 @@ let roleSmartHauler = {
 
     if (creep.ticksToLive !== undefined) {
       if(creep.memory.storing) {
-        let storage = Game.getObjectById(creep.memory.destinationStorage);
-        if (!storage) {
-          console.log(creep.name + ' has no storage? ' + creep.memory.origin);
-          creep.memory.role = 'suicide';
-        } else {
-          for(var resourceType in creep.carry) {
-            if (!creep.carry[resourceType]) { continue; }
-            let result = creep.transfer(storage, resourceType);
-            if (result === ERR_NOT_IN_RANGE) {
-              creep.travelTo(storage, {range: 1});
-            }
-            if (result === ERR_FULL || _.sum(storage.store) + _.sum(creep.carry) > storage.storeCapacity) {
-              for (var res in creep.carry) {
-                creep.drop(res);
-              }
-            }
-            break;
-          }
-          task = "Stor";
-        }
+        storeLoad(creep);
       } else {
         if (!creep.memory.intendedSource && !creep.memory.haulingResources) {
-          //console.log('considering target sources...')
-          let origin = Game.rooms[creep.memory.origin];
-
-          if (origin.controller.level >= 6) {
-            let resourceContainers = [];
-            
-            if (!GameState.cachedResourceContainers) { GameState.cachedResourceContainers = {}; }
-            
-            if (!GameState.cachedResourceContainers[creep.memory.origin]) {
-              resourceContainers = resourceContainers.concat(origin.find(FIND_STRUCTURES, { filter: (s) => (
-                s.structureType === STRUCTURE_CONTAINER
-                && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
-                && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
-              ) }));
-
-              for (var i = 0; i < origin.memory.responsibleForRooms.length; i++) {
-                let rRoom = Game.rooms[origin.memory.responsibleForRooms[i]];
-                if (rRoom) {
-                  resourceContainers = resourceContainers.concat(rRoom.find(FIND_STRUCTURES, { filter: (s) => (
-                    s.structureType === STRUCTURE_CONTAINER
-                    && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
-                    && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
-                  ) }));
-                }
-              }
-              GameState.cachedResourceContainers[creep.memory.origin] = resourceContainers;
-            } else {
-              resourceContainers = GameState.cachedResourceContainers[creep.memory.origin];
-            }
-
-            if (resourceContainers && resourceContainers.length > 0 && creep.ticksToLive > 400) {
-              let target = resourceContainers[0];
-              if (target) {
-                if (target) {
-                  creep.memory.haulingResources = target.id;
-                }
-              }
-            }
-          }
-
-          if (!creep.memory.haulingResources) {
-            // this is the tricky part, choose a source...
-            var sourceDetails = origin.memory.hauling.sourceDetails;
-            var targets = _.filter(sourceDetails, 
-              (srcDet) => (
-                origin.memory.defend.indexOf(srcDet.room) === -1
-                && (srcDet.energy + (srcDet.pathCost * srcDet.energyPerTick) > Math.min(creep.carryCapacity - creep.carry.energy, 500))
-              ));
-            
-            targets = targets.sort((a,b) => b.energy - a.energy);
-
-            if (targets.length > 0) {
-              creep.memory.intendedSource = targets[0].name;
-              //console.log("Retrieving energy from : " + creep.memory.intendedSource);
-
-              Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] = 
-                Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] 
-                - (creep.carryCapacity - creep.carry.energy);
-            } else {
-              //console.log("no energy to haul...")
-              creep.getOutOfTheWay();
-            }
-          }
+          findHaulingTargets(creep);
         }
         
         if (creep.memory.haulingResources) {
-          //console.log(creep.name + ' getting resources from ' + creep.memory.haulingResources)
-          let container = Game.getObjectById(creep.memory.haulingResources);
-          //console.log(JSON.stringify(container))
-          if (container) {
-            if (_.sum(container.store) <= 0 || _.sum(creep.carry) === creep.carryCapacity) {
-              creep.memory.haulingResources = undefined;
-              if (_.sum(creep.carry) > 0) {
-                creep.memory.storing = true;
-              }
-            } else {
-              let res;
-              for(var type in container.store) {
-                res = creep.withdraw(container, type);
-              }
-              //console.log(res);
-              if (res === ERR_NOT_IN_RANGE) {
-                creep.travelTo(container, {range: 1});
-              }
-            }
-          } else {
-            creep.memory.haulingResources = undefined;
-          }
+          retrieveResources(creep);
         } else if (creep.memory.intendedSource) {
-          let target = Game.flags[creep.memory.intendedSource];
-          if (creep.memory.waiting === undefined) { creep.memory.waiting = 0; }
-          
-          if (!target) { 
-            console.log('Derp? ');
-            creep.memory.intendedSource = undefined; 
-            creep.tryToPickUp(); 
-            return; 
-          }
-
-          if (creep.carry.energy > creep.carryCapacity * 0.75 && creep.memory.waiting >= 3) {
-            creep.tryToPickUp(); 
-            creep.memory.storing = true;
-            creep.memory.intendedSource = null;
-            creep.memory.waiting = 0;
-          } else if (creep.pos.getRangeTo(target) > 1) {
-            creep.travelTo(target, { range: 1 });
-            creep.memory.waiting = 0;
-          } else {
-            creep.tryToPickUp();
-            if (creep.memory.waiting++ >= 5) {
-              creep.memory.intendedSource = null;
-            }
-          }
-
-          if (creep.memory.travelTo && creep.memory.travelTo.path) {
-            if ((creep.memory.travelTo.path.length * 2) > (creep.ticksToLive - 15)) {
-              console.log(creep.name + " should abort pickup. TTL:" + creep.ticksToLive + ', dist:' + creep.memory.travelTo.path.length)
-              creep.memory.role = 'suicide';
-            }
-          }
+          retrieveEnergy(creep);
         } else {
           task = 'wat';
         }
@@ -300,5 +158,176 @@ let roleSmartHauler = {
     return 55 - energyFactor;
   }
 };
+
+function findHaulingTargets(creep) {
+  //console.log('considering target sources...')
+  let origin = Game.rooms[creep.memory.origin];
+
+  if (origin.controller.level >= 6) {
+    let resourceContainers = [];
+    
+    if (!GameState.cachedResourceContainers) { GameState.cachedResourceContainers = {}; }
+    
+    if (!GameState.cachedResourceContainers[creep.memory.origin]) {
+      resourceContainers = resourceContainers.concat(origin.find(FIND_STRUCTURES, { filter: (s) => (
+        s.structureType === STRUCTURE_CONTAINER
+        && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
+        && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
+      ) }));
+
+      for (var i = 0; i < origin.memory.responsibleForRooms.length; i++) {
+        let rRoom = Game.rooms[origin.memory.responsibleForRooms[i]];
+        if (rRoom) {
+          resourceContainers = resourceContainers.concat(rRoom.find(FIND_STRUCTURES, { filter: (s) => (
+            s.structureType === STRUCTURE_CONTAINER
+            && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
+            && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
+          ) }));
+        }
+      }
+      GameState.cachedResourceContainers[creep.memory.origin] = resourceContainers;
+    } else {
+      resourceContainers = GameState.cachedResourceContainers[creep.memory.origin];
+    }
+
+    if (resourceContainers && resourceContainers.length > 0 && creep.ticksToLive > 400) {
+      let target = resourceContainers[0];
+      if (target) {
+        if (target) {
+          creep.memory.haulingResources = target.id;
+        }
+      }
+    }
+  }
+
+  if (!creep.memory.haulingResources) {
+    // this is the tricky part, choose a source...
+    var sourceDetails = origin.memory.hauling.sourceDetails;
+    var targets = _.filter(sourceDetails, 
+      (srcDet) => (
+        origin.memory.defend.indexOf(srcDet.room) === -1
+        && (srcDet.energy + (srcDet.pathCost * srcDet.energyPerTick) > Math.min(creep.carryCapacity - creep.carry.energy, 500))
+      ));
+    
+    targets = targets.sort((a,b) => b.energy - a.energy);
+
+    if (targets.length > 0) {
+      creep.memory.intendedSource = targets[0].name;
+      //console.log("Retrieving energy from : " + creep.memory.intendedSource);
+
+      Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] = 
+        Game.rooms[creep.memory.origin].memory.hauling.sourceDetails[creep.memory.intendedSource]['energy'] 
+        - (creep.carryCapacity - creep.carry.energy);
+    } else {
+      //console.log("no energy to haul...")
+      creep.getOutOfTheWay();
+    }
+  }        
+}
+findHaulingTargets = profiler.registerFN(findHaulingTargets, 'findHaulingTargets');
+
+function opportunisticLinkDump(creep) {
+  if (creep.room.memory.links.inputs && creep.room.memory.links.inputs.length > 0) {
+    let links = _.filter(_.map(creep.room.memory.links.inputs, (linkId) => Game.getObjectById(linkId)),
+      (link) => link && link.energy < link.energyCapacity && creep.pos.getRangeTo(link) <= 1);
+    if (links.length > 0) {
+      links.sort((a,b) => a.energy - b.energy);
+      let link = links[0];
+      let linkCapacity = (link.energyCapacity - link.energy);
+      if (linkCapacity + (link.cooldown < 5 ? link.energyCapacity : 0) + link.energyCapacity >= creep.carry.energy) {
+        if (creep.transfer(link, RESOURCE_ENERGY) == 0) {
+          creep.memory.storing = creep.carry.energy > 0;
+        }
+      }
+    }  
+  }
+}
+opportunisticLinkDump = profiler.registerFN(opportunisticLinkDump, 'opportunisticLinkDump');
+
+function retrieveResources(creep) {
+  //console.log(creep.name + ' getting resources from ' + creep.memory.haulingResources)
+  let container = Game.getObjectById(creep.memory.haulingResources);
+  //console.log(JSON.stringify(container))
+  if (container) {
+    if (_.sum(container.store) <= 0 || _.sum(creep.carry) === creep.carryCapacity) {
+      creep.memory.haulingResources = undefined;
+      if (_.sum(creep.carry) > 0) {
+        creep.memory.storing = true;
+      }
+    } else {
+      let res;
+      for(var type in container.store) {
+        res = creep.withdraw(container, type);
+      }
+      //console.log(res);
+      if (res === ERR_NOT_IN_RANGE) {
+        creep.travelTo(container, {range: 1});
+      }
+    }
+  } else {
+    creep.memory.haulingResources = undefined;
+  }
+}
+retrieveResources = profiler.registerFN(retrieveResources, 'retrieveResources');
+
+function retrieveEnergy(creep) {
+  let target = Game.flags[creep.memory.intendedSource];
+  if (creep.memory.waiting === undefined) { creep.memory.waiting = 0; }
+  
+  if (!target) { 
+    console.log('Derp? ');
+    creep.memory.intendedSource = undefined; 
+    creep.tryToPickUp(); 
+    return; 
+  }
+
+  if (creep.carry.energy > creep.carryCapacity * 0.75 && creep.memory.waiting >= 3) {
+    creep.tryToPickUp(); 
+    creep.memory.storing = true;
+    creep.memory.intendedSource = null;
+    creep.memory.waiting = 0;
+  } else if (creep.pos.getRangeTo(target) > 1) {
+    creep.travelTo(target, { range: 1 });
+    creep.memory.waiting = 0;
+  } else {
+    creep.tryToPickUp();
+    if (creep.memory.waiting++ >= 5) {
+      creep.memory.intendedSource = null;
+    }
+  }
+
+  if (creep.memory.travelTo && creep.memory.travelTo.path) {
+    if ((creep.memory.travelTo.path.length * 2) > (creep.ticksToLive - 15)) {
+      console.log(creep.name + " should abort pickup. TTL:" + creep.ticksToLive + ', dist:' + creep.memory.travelTo.path.length)
+      creep.memory.role = 'suicide';
+    }
+  }
+}
+retrieveEnergy = profiler.registerFN(retrieveEnergy, 'retrieveEnergy');
+
+function storeLoad(creep) {
+  let storage = Game.getObjectById(creep.memory.destinationStorage);
+  if (!storage) {
+    console.log(creep.name + ' has no storage? ' + creep.memory.origin);
+    creep.memory.role = 'suicide';
+  } else {
+    for(var resourceType in creep.carry) {
+      if (!creep.carry[resourceType]) { continue; }
+      let result = creep.transfer(storage, resourceType);
+      if (result === ERR_NOT_IN_RANGE) {
+        creep.travelTo(storage, {range: 1});
+      }
+      if (result === ERR_FULL || _.sum(storage.store) >= storage.storeCapacity) {
+        for (var res in creep.carry) {
+          if (!creep.carry[res]) { continue; }
+          creep.drop(res);
+        }
+      }
+      break;
+    }
+    task = "Stor";
+  }
+}
+storeLoad = profiler.registerFN(storeLoad, 'storeLoad');
 
 module.exports = roleSmartHauler;

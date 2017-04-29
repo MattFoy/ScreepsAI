@@ -49,26 +49,29 @@ const modules = require('modules');
 const utilities = require('utilities');
 const roles = require('roles');
 const traveler = require('traveler');
-const SCM = require('_SupplyChainManagement');
-
 const resources = require('resources');
 
 profiler.enable();
 
-module.exports.loop = function () { profiler.wrap(function() {
+module.exports.loop = function () {
+  let deserializationTime = 0;
+  (function() {
+    let startTime = Game.cpu.getUsed();
+    let y = Memory.rooms;
+    deserializationTime = Game.cpu.getUsed() - startTime;
+  }()); 
+
+profiler.wrap(function() {
   require('commandLineUtilities')();
   require('campaigns')();
 
-  try { utilities.initGameState(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
-  
+  try { utilities.initGameState(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }  
   try { utilities.pruneMemory(); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
   console.log(' ============================== ' 
     + 'Tick# ' + Game.time 
-    + ', CPU: ' 
-    + Game.cpu.limit + ', ' 
-    + Game.cpu.tickLimit + ', ' 
-    + Game.cpu.bucket 
+    + ', CPU bucket: ' + Game.cpu.bucket 
+    + ', Deserialization Time: ' + deserializationTime.toFixed(5)
     + ' ============================== ');
   
   if (Memory.empire && Memory.empire.campaigns) {
@@ -119,33 +122,18 @@ module.exports.loop = function () { profiler.wrap(function() {
 
       if (Game.time % 10 === 7 && Game.cpu.bucket > 4000) {
         try { modules.processLabs(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
-        //console.log(Game.cpu.getUsed());
       }
 
       if (Game.time % 7 === 2) {
         try { modules.processSpawning(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
-        //console.log(Game.cpu.getUsed());
       }
       if (Game.time % 8 === 2 && Game.cpu.bucket > 2000) {
         try { utilities.setupTerminalTradingPlan(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       }
-    
+
       try {
-        if (Game.cpu.bucket > 9000 
-          && room.terminal && room.terminal.store[RESOURCE_ENERGY] && room.terminal.store[RESOURCE_ENERGY] > 80000
-          && room.storage && room.storage.store[RESOURCE_ENERGY] && room.storage.store[RESOURCE_ENERGY] > 400000) {
-          // unload it!
-          //console.log(room.name + ' has too much energy...');
-          let destinationRooms = _.filter(Game.rooms, (r) => r.controller && r.controller.my 
-            && r.storage && r.terminal 
-            && r.storage.store.energy && r.storage.store.energy < 400000 
-            && _.sum(r.terminal.store) < 250000);
-          if (destinationRooms.length > 0) {
-            destinationRooms.sort((a,b) => (a.storage.store.energy ? a.storage.store.energy : 0) 
-              - (b.storage.store.energy ? b.storage.store.energy : 0));
-            //console.log(room.name + ' should send energy to ' + destinationRooms[0].name)
-            Game.sendEnergy(room.name, destinationRooms[0].name);
-          }
+        if (Game.cpu.bucket > 9000 && Game.time % 10 === 5) {
+          utilities.giveAwayEnergy(room);
         }
       } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
@@ -181,6 +169,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       Memory.stats.cpu = Game.cpu;
       Memory.stats.cpu.used = Game.cpu.getUsed(); // AT END OF MAIN LOOP
       Memory.stats.cpu.usedToLoad = GameState.cpuUsedToLoad;
+      Memory.stats.cpu.deserializationTime = deserializationTime;
 
       // Note: This is fragile and will change if the Game.gcl API changes
       Memory.stats.gcl = Game.gcl;
@@ -211,8 +200,8 @@ module.exports.loop = function () { profiler.wrap(function() {
   }
 
   if (Game.time % 600 === 0) { 
-    Game.pilferRoom('W83S36', 7);
-    //Game.pilferRoom('W82S38', 7);
+    //Game.pilferRoom('W83S36', 4);
+    //Game.pilferRoom('W82S38', 4);
   }
 
 });}

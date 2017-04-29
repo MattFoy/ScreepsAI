@@ -117,7 +117,7 @@ module.exports.loop = function () { profiler.wrap(function() {
       try { modules.processTowers(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
       try { modules.processLinks(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
 
-      if (Game.time % 10 === 7 && Game.cpu.bucket > 5000) {
+      if (Game.time % 10 === 7 && Game.cpu.bucket > 4000) {
         try { modules.processLabs(room); } catch (err) { Game.notify(err.stack); console.log(err.stack); }
         //console.log(Game.cpu.getUsed());
       }
@@ -192,6 +192,8 @@ module.exports.loop = function () { profiler.wrap(function() {
           // Other memory stats here?
       };
 
+      Memory.stats.mineralsAvailable = {};
+
       Memory.stats.roomSummary = resources.summarize_rooms();
 
       Memory.stats.market = {
@@ -209,7 +211,8 @@ module.exports.loop = function () { profiler.wrap(function() {
   }
 
   if (Game.time % 600 === 0) { 
-    Game.pilferRoom('W82S38', 5);
+    Game.pilferRoom('W83S36', 7);
+    //Game.pilferRoom('W82S38', 7);
   }
 
 });}

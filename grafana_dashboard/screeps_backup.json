@@ -1999,6 +1999,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2022,6 +2023,7 @@
       {
         "allValue": null,
         "current": {
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2034,7 +2036,7 @@
         "options": [],
         "query": "screeps.mineralsAvailable.*",
         "refresh": 1,
-        "regex": "/(X|[^X].+)/",
+        "regex": "/(X|[^X].*)/",
         "sort": 0,
         "tagValuesQuery": "",
         "tags": [],
@@ -2045,7 +2047,7 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
+          "selected": true,
           "text": "All",
           "value": "$__all"
         },
@@ -2105,7 +2107,7 @@
     ]
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {
@@ -2135,5 +2137,5 @@
   },
   "timezone": "browser",
   "title": "Screeps",
-  "version": 22
+  "version": 25
 }

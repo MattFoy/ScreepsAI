@@ -261,7 +261,7 @@ function retrieveResources(creep) {
       }
       //console.log(res);
       if (res === ERR_NOT_IN_RANGE) {
-        creep.travelTo(container, {range: 1});
+        creep.travelTo(container, {range: 1, ignoreTerrain: _.sum(creep.carry) === 0 });
       }
     }
   } else {
@@ -287,7 +287,7 @@ function retrieveEnergy(creep) {
     creep.memory.intendedSource = null;
     creep.memory.waiting = 0;
   } else if (creep.pos.getRangeTo(target) > 1) {
-    creep.travelTo(target, { range: 1 });
+    creep.travelTo(target, { range: 1, ignoreTerrain: _.sum(creep.carry) === 0 });
     creep.memory.waiting = 0;
   } else {
     creep.tryToPickUp();

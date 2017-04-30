@@ -166,7 +166,9 @@ let roleMiner = {
       if (flag.pos.roomName !== room.name) {
         if (flag.room && flag.room.controller) {
           if (flag.room.controller.reservation || flag.room.controller.my) {
-            if (maxEnergy >= 1300) {
+            if (maxEnergy >= 5000) {
+              return Array(10).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(5).fill(MOVE));
+            } else if (maxEnergy >= 1300) {
               return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
             } else if (maxEnergy >= 800) {
               return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));
@@ -202,13 +204,17 @@ let roleMiner = {
         if (room.memory.links && room.memory.links.inputs && room.memory.links.inputs.length > 0) {
           let inputLinks = _.map(room.memory.links.inputs, (linkId) => Game.getObjectById(linkId));
           if (_.filter(inputLinks, (link) => flag.pos.getRangeTo(link) === 1).length > 0) {
-            if (maxEnergy >= 800) {
+            if (maxEnergy >= 5000) {
+              return Array(10).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(5).fill(MOVE));
+            } else if (maxEnergy >= 800) {
               return Array(6).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(3).fill(MOVE));
             }
           }
         }
 
-        if (maxEnergy >= 1300) {
+        if (maxEnergy >= 5000) {
+          return Array(10).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(5).fill(MOVE));
+        } else if (maxEnergy >= 1300) {
           return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
         } else if (maxEnergy >= 800) {
           return Array(6).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(3).fill(MOVE));

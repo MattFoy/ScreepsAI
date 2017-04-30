@@ -21,16 +21,13 @@ function processTowers(room) {
     if (healers.length > 0) {
       var totalHEAL = 0;
       totalHEAL = _.sum(healers, function(c) { return c.getActiveBodyparts(HEAL); });
-      if (totalHEAL * HEAL_POWER >= towers.length * 600) { // TODO: fix this magic number
+      let closestHealer = tower.pos.findClosestByRange(healers);
+
+      if (totalHEAL * HEAL_POWER >= towers.length * closestHealer.pos.getTowerDamage()) { // TODO: fix this magic number
         console.log("cannot kill" + totalHEAL);
       }
       if (!target) {
-        target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-          filter: function(object) {
-            return object.getActiveBodyparts(HEAL) > 0
-              && 0 > GameState.allies.indexOf(object.owner.username)
-          }
-        });
+        target = closestHealer;
       }
     } else {        
       if (!target) {

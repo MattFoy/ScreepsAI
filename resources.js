@@ -51,7 +51,7 @@ function summarize_room_internal(room) {
     const num_my_construction_sites = my_const_sites.length;
     const has_terminal = room.terminal != null;
     const terminal_energy = room.terminal ? room.terminal.store[RESOURCE_ENERGY] : 0;
-    const terminal_minerals = room.terminal.store;
+    const terminal_minerals = room.terminal ? room.terminal.store : {};
 
     if (room.terminal) {
         for (let resType in room.terminal.store) {

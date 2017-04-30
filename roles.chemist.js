@@ -39,8 +39,10 @@ let roleChemist = {
 
   determineBodyParts: function(room) {
     let maxEnergy = room.energyCapacityAvailable;
-    if (maxEnergy >= 900) {
-      return [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY];
+    if (maxEnergy >= 5000) {
+      return Array(20).fill(CARRY).concat(Array(10).fill(MOVE));
+    } else if (maxEnergy >= 900) {
+      return Array(12).fill(CARRY).concat(Array(6).fill(MOVE));
     } else {
       return [CARRY,CARRY,MOVE,CARRY,CARRY,MOVE];  
     }    
@@ -181,7 +183,7 @@ function getChemistTask(creep) {
           }
 
           // 4. Remove minerals from Input lab 1 if wrong type
-          if (lab.mineralAmount && lab.mineralAmount > 0 
+          if (!res || lab.mineralAmount && lab.mineralAmount > 0 
             && lab.mineralType && lab.mineralType !== res) {
             creep.memory.chemistry.targetLabId = lab.id;
             creep.memory.chemistry.task = 'unload';
@@ -190,25 +192,27 @@ function getChemistTask(creep) {
             return;
           }
 
-          // 5. Keep Input lab 1 filled with mineral #1
-          let mineralsAvailable = 0;
-          if (creep.room.storage && creep.room.storage.store[res]) {
-            mineralsAvailable += creep.room.storage.store[res];
-          }
-          if (creep.room.terminal && creep.room.terminal.store[res]) {
-            mineralsAvailable += creep.room.terminal.store[res];
-          }
-          let mineralsRequired = Math.min(creep.carryCapacity, lab.mineralCapacity - lab.mineralAmount);
-          if ((lab.mineralAmount === 0 || (lab.mineralAmount > 0 && lab.mineralAmount < (lab.mineralCapacity / 2)))
-            && (!lab.mineralType || lab.mineralType === res)) {
-            if (mineralsAvailable >= mineralsRequired) {
-              creep.memory.chemistry.targetLabId = lab.id;
-              creep.memory.chemistry.task = 'load';
-              creep.memory.chemistry.mineralType = res;
-              creep.memory.chemistry.amount = mineralsRequired;
-              return;
-            } else {
-              creep.room.requestResource(res, mineralsRequired - mineralsAvailable, false);
+          if (res) {
+            // 5. Keep Input lab 1 filled with mineral #1
+            let mineralsAvailable = 0;
+            if (creep.room.storage && creep.room.storage.store[res]) {
+              mineralsAvailable += creep.room.storage.store[res];
+            }
+            if (creep.room.terminal && creep.room.terminal.store[res]) {
+              mineralsAvailable += creep.room.terminal.store[res];
+            }
+            let mineralsRequired = Math.min(creep.carryCapacity, lab.mineralCapacity - lab.mineralAmount);
+            if ((lab.mineralAmount === 0 || (lab.mineralAmount > 0 && lab.mineralAmount < (lab.mineralCapacity / 2)))
+              && (!lab.mineralType || lab.mineralType === res)) {
+              if (mineralsAvailable >= mineralsRequired) {
+                creep.memory.chemistry.targetLabId = lab.id;
+                creep.memory.chemistry.task = 'load';
+                creep.memory.chemistry.mineralType = res;
+                creep.memory.chemistry.amount = mineralsRequired;
+                return;
+              } else {
+                creep.room.requestResource(res, mineralsRequired - mineralsAvailable, false);
+              }
             }
           }
         }
@@ -238,7 +242,7 @@ function getChemistTask(creep) {
     });
 
     if (outputLabs.length > 0) {
-      let reactionMineral = 'none';
+      let reactionMineral = undefined;
       if (REACTIONS[creep.room.memory.science.resource1] 
         && REACTIONS[creep.room.memory.science.resource1][creep.room.memory.science.resource2]) {
         reactionMineral = REACTIONS[creep.room.memory.science.resource1][creep.room.memory.science.resource2];  
@@ -249,7 +253,8 @@ function getChemistTask(creep) {
       // 8. Remove all minerals from Output labs if wrong type
       for(var i = 0; i < outputLabs.length; i++) {
         let lab = outputLabs[i];
-        if (lab.mineralAmount > 0 && lab.mineralType && lab.mineralType !== reactionMineral) {
+        if (lab.mineralAmount > 0 && lab.mineralType 
+          && (!reactionMineral || lab.mineralType !== reactionMineral)) {
           creep.memory.chemistry.targetLabId = lab.id;
           creep.memory.chemistry.task = 'unload';
           creep.memory.chemistry.mineralType = lab.mineralType;
@@ -270,12 +275,11 @@ function getChemistTask(creep) {
           return;
         }
       }
-
-
     }
   }
 
   // 10. Load up the Nuker
+
 
 
   // else...

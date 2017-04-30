@@ -41,19 +41,19 @@ class Traveler {
             return 1;
           }
         }
-        if (!options.allowSK && !Game.rooms[roomName]) {
-          if (!parsed) {
-            parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-          }
-          let fMod = parsed[1] % 10;
-          let sMod = parsed[2] % 10;
-          let isSK = !(fMod === 5 && sMod === 5) &&
-            ((fMod >= 4) && (fMod <= 6)) &&
-            ((sMod >= 4) && (sMod <= 6));
-          if (isSK) {
-            return 10;
-          }
+        if (!parsed) {
+          parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
         }
+        let fMod = parsed[1] % 10;
+        let sMod = parsed[2] % 10;
+        let isSK = !(fMod === 5 && sMod === 5) &&
+          ((fMod >= 4) && (fMod <= 6)) &&
+          ((sMod >= 4) && (sMod <= 6));
+        if (isSK && !options.allowSK) {
+          return 10;
+        } else {
+          return 1.5;
+        }        
         if (!options.allowHostile && this.memory.hostileRooms[roomName] &&
           roomName !== destination && roomName !== origin) {
           return Number.POSITIVE_INFINITY;
@@ -142,11 +142,15 @@ class Traveler {
 
       return matrix;
     };
+    let plainCost = options.ignoreRoads ? 1 : 2;
+    let swampCost = options.ignoreRoads ? 5 : 10;
+    if (options.ignoreTerrain) { plainCost = 1; swampCost = 1; }
+    
     return PathFinder.search(origin.pos, { pos: destination, range: options.range }, {
       maxOps: options.maxOps,
-      plainCost: options.ignoreRoads ? 1 : 2,
+      plainCost: plainCost,
       roomCallback: callback,
-      swampCost: options.ignoreRoads ? 5 : 10,
+      swampCost: swampCost,
     });
   }
   travelTo(creep, destination, options = {}) {

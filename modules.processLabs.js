@@ -111,7 +111,6 @@ function processLabs(room) {
       } else { 
         room.visual.text('O', lab.pos.x, lab.pos.y);
         if (room.memory.science.inputLabs.length === 2) {
-          //room.visual.text('i',)
           let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
           let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
           lab.runReaction(lab1, lab2);

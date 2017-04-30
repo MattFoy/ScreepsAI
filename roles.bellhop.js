@@ -163,7 +163,7 @@ let roleBellhop = {
       }
       if (creep.memory.carrying) {
         if (creep.transfer(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y), {range: 0});
+          creep.travelTo(creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y), {range: 0, ignoreTerrain: true });
         }
       } else {
         creep.goGetEnergy(true, true);
@@ -172,7 +172,7 @@ let roleBellhop = {
       if (_.sum(creep.carry) > creep.carry.energy) {
         for (var resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           }
         }
       }
@@ -187,21 +187,21 @@ let roleBellhop = {
             //console.log('bellhop: ' + JSON.stringify(creep.room.memory.links.receiverSpot));
             let roomPos = creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y);
             //console.log(JSON.stringify(roomPos));
-            creep.travelTo(roomPos, {range: 0});
+            creep.travelTo(roomPos, {range: 0, ignoreTerrain: true});
           }
         } else {
           if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
             //console.log('bellhop: ' + JSON.stringify(creep.room.memory.links.receiverSpot));
             let roomPos = creep.room.getPositionAt(creep.room.memory.links.receiverSpot.x, creep.room.memory.links.receiverSpot.y);
             //console.log(JSON.stringify(roomPos));
-            creep.travelTo(roomPos, {range: 0});
+            creep.travelTo(roomPos, {range: 0, ignoreTerrain: true});
           }
         }
         if (link.energy == 0) { creep.memory.bellhopTask = "idle"; }
         if (_.sum(creep.carry) > creep.carry.energy) {
           for (var resourceType in creep.carry) {
             if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-              creep.travelTo(creep.room.storage, {range: 1});
+              creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
             }
           }
         }
@@ -220,7 +220,7 @@ let roleBellhop = {
         if(targets.length > 0) {
           let target = creep.pos.findClosestByRange(targets);
           if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            creep.travelTo(target, {range: 1});
+            creep.travelTo(target, {range: 1, ignoreTerrain: true});
           }
         } else {
           creep.memory.bellhopTask = 'idle';
@@ -247,7 +247,7 @@ let roleBellhop = {
       if (_.sum(creep.carry) > creep.carry.energy) {
         for (var resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           }
         }
       }
@@ -258,7 +258,7 @@ let roleBellhop = {
       if (creep.memory.carrying) {
         if (upgradeContainer) {
           if (creep.transfer(upgradeContainer, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(upgradeContainer, {range: 1});
+            creep.travelTo(upgradeContainer, {range: 1, ignoreTerrain: true});
           } else {
             creep.memory.bellhopTask = 'idle';
           }
@@ -269,7 +269,7 @@ let roleBellhop = {
       if (_.sum(creep.carry) > creep.carry.energy) {
         for (var resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           }
         }
       }  
@@ -279,19 +279,19 @@ let roleBellhop = {
       }
       if (creep.memory.carrying) {
         if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.storage, {range: 1});
+          creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
         } else {
           creep.memory.bellhopTask = 'idle';
         }
       } else {
         if (creep.withdraw(creep.room.terminal, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.terminal, {range: 1});
+          creep.travelTo(creep.room.terminal, {range: 1, ignoreTerrain: true});
         }
       } 
       if (_.sum(creep.carry) > creep.carry.energy) {
         for (var resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           }
         }
       }
@@ -299,7 +299,7 @@ let roleBellhop = {
       if (creep.memory.carrying) {
         for (var resource in creep.carry) {
           if (creep.transfer(creep.room.storage, resource) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           } else {
             //console.log('dumped');
             creep.memory.bellhopTask = 'idle';
@@ -324,7 +324,7 @@ let roleBellhop = {
             if (withdrawAmount > 0) {
               let result = creep.withdraw(creep.room.terminal, resource, withdrawAmount);
               if (result === ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.terminal, {range: 1});
+                creep.travelTo(creep.room.terminal, {range: 1, ignoreTerrain: true});
               } else if (result === OK) {
                 creep.memory.carrying = true;
               }
@@ -343,7 +343,7 @@ let roleBellhop = {
       }
       if (creep.memory.carrying) {
         if (creep.transfer(creep.room.terminal, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.travelTo(creep.room.terminal, {range: 1});
+          creep.travelTo(creep.room.terminal, {range: 1, ignoreTerrain: true});
         } else {
           creep.memory.bellhopTask = 'idle';
         }
@@ -353,7 +353,7 @@ let roleBellhop = {
       if (_.sum(creep.carry) > creep.carry.energy) {
         for (var resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
           }
         }
       }
@@ -361,7 +361,7 @@ let roleBellhop = {
       if (creep.memory.carrying) {
         for (var resource in creep.carry) {
           if (creep.transfer(creep.room.terminal, resource) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.terminal, {range: 1});
+            creep.travelTo(creep.room.terminal, {range: 1, ignoreTerrain: true});
           } else {
             creep.memory.bellhopTask = 'idle';
           }
@@ -383,7 +383,7 @@ let roleBellhop = {
             if (withdrawAmount > 0) {
               let result = creep.withdraw(creep.room.storage, resource, withdrawAmount);
               if (result === ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.storage, {range: 1});
+                creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true});
               } else if (result === OK) {
                 creep.memory.carrying = true;
               }
@@ -398,14 +398,14 @@ let roleBellhop = {
       if (creep.memory.carrying) {
         for (let resourceType in creep.carry) {
           if (creep.transfer(creep.room.storage, resourceType) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(creep.room.storage, {range: 1});
+            creep.travelTo(creep.room.storage, {range: 1, ignoreTerrain: true });
           }
         }
       } else {
         let droppedEnergy = creep.room.storage.pos.findInRange(FIND_DROPPED_ENERGY, 15, (e) => e.amount > 100);
         if (droppedEnergy.length > 0) {
           if (creep.pickup(droppedEnergy[0]) === ERR_NOT_IN_RANGE) {
-            creep.travelTo(droppedEnergy[0], { range: 1 });
+            creep.travelTo(droppedEnergy[0], { range: 1, ignoreTerrain: true });
           }
         } else {
           creep.getOutOfTheWay();

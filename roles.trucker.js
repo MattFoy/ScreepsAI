@@ -58,7 +58,7 @@ let roleTrucker = {
         if (!creep.memory.travelToTarget) {
           creep.memory.travelToTarget = {x:25, y:25, roomName:creep.memory.targetRoom};
         }
-        creep.travelTo(creep.memory.travelToTarget);
+        creep.travelTo(creep.memory.travelToTarget, { ignoreTerrain: _.sum(creep.carry) === 0 });
       } else {
         let targetStorage;
 
@@ -83,7 +83,7 @@ let roleTrucker = {
               if (!targetStorage.store[res]) { continue; }
 
               if (creep.withdraw(targetStorage, res) === ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.memory.travelToTarget, { range: 1 });
+                creep.travelTo(creep.memory.travelToTarget, { range: 1, ignoreTerrain: _.sum(creep.carry) === 0 });
               } else {
                 if (!creep.memory.distanceToTarget) {
                   creep.memory.distanceToTarget = 1;

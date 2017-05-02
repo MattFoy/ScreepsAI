@@ -48,12 +48,12 @@ let roleUpgrader = {
         let maxEnergy = room.energyCapacityAvailable;
         
         if (room.storage && room.storage.store[RESOURCE_ENERGY] < 200000) {
-            maxEnergy = Math.min(2050, maxEnergy);
+            //maxEnergy = Math.min(2050, maxEnergy);
         }
 
-        var segment = [WORK,WORK,MOVE];
-        var body = [CARRY];
-        maxEnergy -= BODYPART_COST[CARRY];
+        var segment = [WORK,WORK,CARRY,MOVE];
+        var body = [];
+        //maxEnergy -= BODYPART_COST[CARRY];
         var segmentCost = _.sum(segment, (p) => BODYPART_COST[p]);
 
         do {

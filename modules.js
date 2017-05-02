@@ -6,17 +6,19 @@ module.exports = {
   processSpawning: require('modules.processSpawning'),
   processObserver: function(room) {
   	let observer;
-  	if (Memory.empire.observationRequests) {
-  		Memory.empire.observationRequests = _.uniq(Memory.empire.observationRequests);
+
+  	// Assume requests are unique...
+    // if (Memory.empire.observationRequests) {
+  	// 	Memory.empire.observationRequests = _.uniq(Memory.empire.observationRequests);
   		
-      if (Memory.empire.observers) {
-  			_.remove(Memory.empire.observationRequests, 
-  				(requestedRoom) => _.filter(Memory.empire.observers, 
-  					(obs) => obs.observing === requestedRoom 
-              && obs.observingUntil
-              && Game.time - obs.observingUntil < 0).length > 0);  			
-  		}
-  	}
+   //    if (Memory.empire.observers) {
+  	// 		_.remove(Memory.empire.observationRequests, 
+  	// 			(requestedRoom) => _.filter(Memory.empire.observers, 
+  	// 				(obs) => obs.observing === requestedRoom 
+   //            && obs.observingUntil
+   //            && Game.time - obs.observingUntil < 0).length > 0);  			
+  	// 	}
+  	// }
 
   	if (Memory.empire.observers && Memory.empire.observers[room.name]) {
   		observer = Game.getObjectById(Memory.empire.observers[room.name].id);

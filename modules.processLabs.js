@@ -98,25 +98,30 @@ function processLabs(room) {
       }
     }
 
-    labs.forEach(function(lab) {
-      if (room.memory.science.boosts) {
-        if (_.filter(room.memory.science.boosts, (id) => id === lab.id).length > 0) {
-          room.visual.text('B', lab.pos.x, lab.pos.y);
-          return;
-        }
-      }
-
-      if (room.memory.science.inputLabs.indexOf(lab.id) > -1) {
-        room.visual.text('I', lab.pos.x, lab.pos.y);
-      } else { 
-        room.visual.text('O', lab.pos.x, lab.pos.y);
-        if (room.memory.science.inputLabs.length === 2) {
-          let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
-          let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
-          lab.runReaction(lab1, lab2);
-        }
-      }
-    });
+    let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
+    let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
+    
+    if (lab1.mineralType === room.memory.science.resource1 
+        && lab2.mineralType === room.memory.science.resource2
+        && lab1.mineralAmount > 5 && lab2.mineralAmount > 5) {
+        labs.forEach(function(lab) {
+          if (room.memory.science.boosts) {
+            if (_.filter(room.memory.science.boosts, (id) => id === lab.id).length > 0) {
+              //room.visual.text('B', lab.pos.x, lab.pos.y);
+              return;
+            }
+          }
+    
+          if (room.memory.science.inputLabs.indexOf(lab.id) > -1) {
+            //room.visual.text('I', lab.pos.x, lab.pos.y);
+          } else { 
+            //room.visual.text('O', lab.pos.x, lab.pos.y);
+            if (room.memory.science.inputLabs.length === 2) {
+              lab.runReaction(lab1, lab2);
+            }
+          }
+        });
+    }
   }
 }
 

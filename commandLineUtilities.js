@@ -11,6 +11,26 @@ module.exports = function() {
 
 
 
+  Game.observe = function(roomName) {
+    if (Memory.empire.observationRequests.indexOf(roomName) < 0) {
+      Memory.empire.observationRequests.push(roomName);
+    }
+  }
+
+
+
+
+  Game.truckerOrigin = function(roomName) {
+    _.map(
+      _.filter(
+        Game.creeps, 
+        (c) => c.memory.role === 'trucker'),
+      (c) => c.memory.origin = roomName);
+  }
+
+
+
+
   Game.pilferRoom = function(roomName, maxSpawn) {
     if (!maxSpawn) { maxSpawn = 10; }
     let spawned = 0;

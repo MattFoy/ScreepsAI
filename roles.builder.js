@@ -42,69 +42,7 @@ let roleBuilder = {
     if(creep.memory.building) {
       // Find something to either repair or build
       if (!creep.memory.buildOrRepair) {
-        if (Memory.empire && Memory.empire.buildQueues 
-          && Memory.empire.buildQueues[creep.memory.origin] 
-          && Memory.empire.buildQueues[creep.memory.origin].length > 0) {
-          
-          if (!Memory.empire.buildQueueAssignments) {
-            Memory.empire.buildQueueAssignments = {};
-          }
-
-          for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {
-            if (!Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] 
-              && !Memory.empire.buildQueues[creep.memory.origin][i].assigned) {
-              
-              if (Memory.empire.buildQueues[creep.memory.origin][i].type === 'repair' 
-                && Memory.empire.buildQueues[creep.memory.origin][i].structureType === STRUCTURE_ROAD) {
-
-                var j = i;
-                let closestRoadIdx = i;
-                let distanceToClosestRoad = 100;
-                let currentJob;
-                do {
-                  currentJob = Memory.empire.buildQueues[creep.memory.origin][j];
-
-                  if (creep.pos.getRangeTo2(currentJob.pos) < distanceToClosestRoad) {
-                    closestRoadIdx = j;
-                    distanceToClosestRoad = creep.pos.getRangeTo2(currentJob.pos);
-                  }
-
-                  j++;
-                } while (currentJob.type === 'repair' 
-                  && currentJob.structureType === STRUCTURE_ROAD
-                  && j < Memory.empire.buildQueues[creep.memory.origin].length
-                  && !Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][j].id] 
-                  && !Memory.empire.buildQueues[creep.memory.origin][j].assigned);
-
-                // console.log('Creep: ' + creep.name + ', pos: ' + JSON.stringify(creep.pos));
-                // console.log('Start idx: ' + i); 
-                // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][i].pos));
-                // console.log('Final idx: ' + closestRoadIdx);
-                // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].pos));
-
-                creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx];
-                Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].id] = creep.name;
-                Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].assigned = true;
-                break;
-
-              } else {
-                creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][i];
-                Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
-                Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
-                break;
-              }
-            }
-          }
-
-          if (!creep.memory.buildOrRepair) {
-            let buildQueue = _.filter(Memory.empire.buildQueues[creep.memory.origin], 
-              (q) => q.type === 'build');
-
-            if (buildQueue.length > 0) {
-              creep.memory.buildOrRepair = buildQueue[0];
-            }
-          }
-        }
+        getBuilderJob(creep);
       }
       
       if (creep.memory.buildOrRepair) {
@@ -112,7 +50,7 @@ let roleBuilder = {
         let target = Game.getObjectById(creep.memory.buildOrRepair.id);
         if (target) {
           if (!target.room) { 
-            creep.travelTo({x: 25, y: 25, roomName: target.pos.roomName});
+            creep.travelTo({x: 25, y: 25, roomName: target.pos.roomName}, { range: 3 });
           } else if (creep.room.name !== target.room.name) {
             creep.travelTo(target, { range: 1 });
             task += "-T";
@@ -137,18 +75,18 @@ let roleBuilder = {
               }
             }
 
-            if (creep.pos.x === 0) {
-              creep.move(RIGHT);
-            } else if (creep.pos.x === 49) {
-              creep.move(LEFT);
-            } else if (creep.pos.y === 0) {
-              creep.move(BOTTOM);
-            } else if (creep.pos.y === 49) {
-              creep.move(TOP);
-            }
+            // if (creep.pos.x === 0) {
+            //   creep.move(RIGHT);
+            // } else if (creep.pos.x === 49) {
+            //   creep.move(LEFT);
+            // } else if (creep.pos.y === 0) {
+            //   creep.move(BOTTOM);
+            // } else if (creep.pos.y === 49) {
+            //   creep.move(TOP);
+            // }
           } 
         } else {
-          creep.memory.buildOrRepair = null;
+          delete creep.memory.buildOrRepair;
           task += '-X';
         }
       } else {
@@ -172,8 +110,8 @@ let roleBuilder = {
   }, 'run:builder'),
 
   determineBodyParts: function(room) {
-    let maxEnergy = Math.min(room.energyCapacityAvailable, 2200);
-    
+    //let maxEnergy = Math.min(room.energyCapacityAvailable, 2200);
+    let maxEnergy = room.energyCapacityAvailable;
     var segment = [WORK,CARRY,MOVE];
     var body = [];
     var segmentCost = _.sum(segment, (p) => BODYPART_COST[p]);
@@ -220,5 +158,74 @@ let roleBuilder = {
     return 50 + ((rolesInRoom['builder'] && rolesInRoom['builder'].length > 2) ? 10 : 0);  
   }
 };
+
+
+function getBuilderJob(creep) {
+    if (Memory.empire && Memory.empire.buildQueues 
+      && Memory.empire.buildQueues[creep.memory.origin] 
+      && Memory.empire.buildQueues[creep.memory.origin].length > 0) {
+      
+      if (!Memory.empire.buildQueueAssignments) {
+        Memory.empire.buildQueueAssignments = {};
+      }
+
+      for (var i = 0; i < Memory.empire.buildQueues[creep.memory.origin].length; i++) {
+        if (!Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] 
+          && !Memory.empire.buildQueues[creep.memory.origin][i].assigned) {
+          
+          if (Memory.empire.buildQueues[creep.memory.origin][i].type === 'repair' 
+            && Memory.empire.buildQueues[creep.memory.origin][i].structureType === STRUCTURE_ROAD) {
+
+            var j = i;
+            let closestRoadIdx = i;
+            let distanceToClosestRoad = 100;
+            let currentJob;
+            do {
+              currentJob = Memory.empire.buildQueues[creep.memory.origin][j];
+
+              if (creep.pos.getRangeTo2(currentJob.pos) < distanceToClosestRoad) {
+                closestRoadIdx = j;
+                distanceToClosestRoad = creep.pos.getRangeTo2(currentJob.pos);
+              }
+
+              j++;
+            } while (currentJob.type === 'repair' 
+              && currentJob.structureType === STRUCTURE_ROAD
+              && j < Memory.empire.buildQueues[creep.memory.origin].length
+              && !Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][j].id] 
+              && !Memory.empire.buildQueues[creep.memory.origin][j].assigned
+              && distanceToClosestRoad >= 10);
+
+            // console.log('Creep: ' + creep.name + ', pos: ' + JSON.stringify(creep.pos));
+            // console.log('Start idx: ' + i); 
+            // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][i].pos));
+            // console.log('Final idx: ' + closestRoadIdx);
+            // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].pos));
+
+            creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx];
+            Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].id] = creep.name;
+            Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].assigned = true;
+            return;
+
+          } else {
+            creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][i];
+            Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][i].id] = creep.name;
+            Memory.empire.buildQueues[creep.memory.origin][i].assigned = true;
+            return;
+          }
+        }
+      }
+
+      if (!creep.memory.buildOrRepair) {
+        let buildQueue = _.filter(Memory.empire.buildQueues[creep.memory.origin], 
+          (q) => q.type === 'build');
+
+        if (buildQueue.length > 0) {
+          creep.memory.buildOrRepair = buildQueue[0];
+        }
+      }
+    }
+}
+getBuilderJob = profiler.registerFN(getBuilderJob, 'getBuilderJob');
 
 module.exports = roleBuilder;

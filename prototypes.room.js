@@ -38,10 +38,11 @@ module.exports = function() {
     }
 
     if (targetRoom.controller 
-      && (!targetRoom.controller.my 
-        || (targetRoom.controller.reservation 
-          && targetRoom.controller.reservation.username 
-          !== GameState.username))) {
+      && ((targetRoom.controller.owner 
+        && targetRoom.controller.owner.username 
+        && !targetRoom.controller.my)
+      || (targetRoom.controller.reservation 
+        && targetRoom.controller.reservation.username !== GameState.username))) {
       console.log('Cannot mine this room');
       return ERR_INVALID_ARGS;
     }
@@ -62,7 +63,9 @@ module.exports = function() {
     }
 
     let sources = targetRoom.find(FIND_SOURCES);
-    let minerals = targetRoom.find(FIND_MINERALS);
+    let minerals = targetRoom.find(FIND_MINERALS, { filter: 
+      (mineral) => _.filter(mineral.pos.lookFor(LOOK_STRUCTURES), 
+        (s) => s.structureType === STRUCTURE_EXTRACTOR).length > 0 });
 
     let destinations = _.map(sources, (source) => {
       return {
@@ -171,13 +174,16 @@ module.exports = function() {
     function configureControllerFlag(targetRoom) {
       if (targetRoom.controller) {
         for (var x = targetRoom.controller.pos.x - 1;
-          x < targetRoom.controller.pos.x + 1; x++) {
+          x <= targetRoom.controller.pos.x + 1; x++) {
           for (var y = targetRoom.controller.pos.y - 1;
-            y < targetRoom.controller.pos.y + 1; y++) {
+            y <= targetRoom.controller.pos.y + 1; y++) {
+            targetRoom.visual.text('o',x,y);
             let roomPos = targetRoom.getPositionAt(x, y);
             if (roomPos.isPathable()) {
               if (roomPos.lookFor(LOOK_STRUCTURES).length === 0) {
-                if (OK === targetRoom.createFlag(x,y, 'reserve_' + targetRoom.name)) {
+                let res = targetRoom.createFlag(x, y, 'reserve_' + targetRoom.name);
+                console.log(res);
+                if (typeof(res) === 'string') {
                   return 'reserve_' + targetRoom.name;
                 }
               }
@@ -188,6 +194,7 @@ module.exports = function() {
     }
 
     let reserveFlagName = configureControllerFlag(targetRoom);
+    console.log('reserve flag: ' + reserveFlagName);
     if (reserveFlagName && this.memory.roleReservables['roomReserver'].indexOf(reserveFlagName) === -1) {
       this.memory.roleReservables['roomReserver'].push(reserveFlagName);
     }

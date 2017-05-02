@@ -29,7 +29,7 @@ let roleRemoteDefender = {
     }
 
     if (creep.memory.roomToDefend) {
-      if(creep.room.name !== creep.memory.roomToDefend && !creep.memory.targetId) {
+      if(creep.room.name !== creep.memory.roomToDefend) {
         if (creep.getActiveBodyparts(MOVE) === 0) {
           creep.suicide();
         }

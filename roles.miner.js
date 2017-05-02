@@ -99,8 +99,10 @@ let roleMiner = {
             }
           } else {
             //creep.say('Repair');
-            if (!creep.memory.interimBuild || (creep.memory.interimBuild.sleepUntil 
-              && Game.time - creep.memory.sleepUntil > 0 )) {
+            if (creep.memory.interimBuild 
+              && creep.memory.interimBuild.sleepUntil) {
+              creep.say('Zzz', true);
+            } else if (!creep.memory.interimBuild) {
               creep.memory.interimBuild = {}
 
               let target;
@@ -128,21 +130,37 @@ let roleMiner = {
               if (!creep.memory.interimBuild.target) {
                 creep.memory.interimBuild.sleepUntil = Game.time + source.ticksToRegeneration + 1;
               } 
-            }
-
-            if (creep.carry.energy < creep.carryCapacity) {
-              creep.tryToPickUp();
-            }
+            }              
 
             if (creep.memory.interimBuild 
               && creep.memory.interimBuild.target
               && creep.memory.interimBuild.mode) {
               let target = Game.getObjectById(creep.memory.interimBuild.target);
+              
               if (target) {
+                if (creep.carry.energy < creep.carryCapacity) {
+                  creep.tryToPickUp();
+                  if (creep.memory.interimBuild.tryingToPickup === undefined) {
+                    creep.memory.interimBuild.tryingToPickup = 0;
+                  } else {
+                    creep.memory.interimBuild.tryingToPickup++;
+                  }
+                } else {
+                  creep.memory.interimBuild.tryingToPickup = 0;
+                }
+
+                if (creep.memory.interimBuild.tryingToPickup > 5) {
+                  delete creep.memory.interimBuild.target;
+                  delete creep.memory.interimBuild.mode;
+                  creep.memory.interimBuild.sleepUntil = Game.time + source.ticksToRegeneration + 1;
+                  return;
+                }
+
                 if (creep.memory.interimBuild.mode === 'b') {
                   creep.build(target);
                 } else if (creep.memory.interimBuild.mode === 'r') {
                   creep.repair(target);
+                  if (target.hits >= target.hitsMax) { delete creep.memory.interimBuild; }
                 } else {
                   console.log("Invalid interimBuild mode: " + creep.memory.interimBuild.mode);
                   delete creep.memory.interimBuild;
@@ -167,7 +185,7 @@ let roleMiner = {
         if (flag.room && flag.room.controller) {
           if (flag.room.controller.reservation || flag.room.controller.my) {
             if (maxEnergy >= 5000) {
-              return Array(10).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(5).fill(MOVE));
+              return Array(12).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(6).fill(MOVE));
             } else if (maxEnergy >= 1300) {
               return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
             } else if (maxEnergy >= 800) {
@@ -190,7 +208,9 @@ let roleMiner = {
 
           // todo: check this case...
 
-          if (maxEnergy >= 3000) {
+          if (maxEnergy >= 5000) {
+            return Array(16).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(8).fill(MOVE));
+          } else if (maxEnergy >= 3000) {
             return Array(12).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(6).fill(MOVE));
           } if (maxEnergy >= 1300) {
             return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
@@ -205,7 +225,7 @@ let roleMiner = {
           let inputLinks = _.map(room.memory.links.inputs, (linkId) => Game.getObjectById(linkId));
           if (_.filter(inputLinks, (link) => flag.pos.getRangeTo(link) === 1).length > 0) {
             if (maxEnergy >= 5000) {
-              return Array(10).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(5).fill(MOVE));
+              return Array(12).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(6).fill(MOVE));
             } else if (maxEnergy >= 800) {
               return Array(6).fill(WORK).concat(Array(4).fill(CARRY)).concat(Array(3).fill(MOVE));
             }
@@ -213,7 +233,7 @@ let roleMiner = {
         }
 
         if (maxEnergy >= 5000) {
-          return Array(10).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(5).fill(MOVE));
+          return Array(12).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(6).fill(MOVE));
         } else if (maxEnergy >= 1300) {
           return Array(8).fill(WORK).concat(Array(1).fill(CARRY)).concat(Array(4).fill(MOVE));
         } else if (maxEnergy >= 800) {

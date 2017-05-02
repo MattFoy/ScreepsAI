@@ -171,7 +171,7 @@ function findHaulingTargets(creep) {
     if (!GameState.cachedResourceContainers[creep.memory.origin]) {
       resourceContainers = resourceContainers.concat(origin.find(FIND_STRUCTURES, { filter: (s) => (
         s.structureType === STRUCTURE_CONTAINER
-        && ((_.sum(s.store) - s.store[RESOURCE_ENERGY]) > Math.min(creep.carryCapacity, 1000))
+        && (_.sum(s.store) > Math.min(creep.carryCapacity, 1000))
         && (_.filter(Game.creeps, (c) => c.memory.haulingResources === s.id).length === 0)
       ) }));
 

@@ -224,7 +224,7 @@ function findHaulingTargets(creep) {
     }
   }        
 }
-findHaulingTargets = profiler.registerFN(findHaulingTargets, 'findHaulingTargets');
+findHaulingTargets = profiler.registerFN(findHaulingTargets, 'hauler:findHaulingTargets');
 
 function opportunisticLinkDump(creep) {
   if (creep.room.memory.links.inputs && creep.room.memory.links.inputs.length > 0) {
@@ -242,7 +242,7 @@ function opportunisticLinkDump(creep) {
     }  
   }
 }
-opportunisticLinkDump = profiler.registerFN(opportunisticLinkDump, 'opportunisticLinkDump');
+opportunisticLinkDump = profiler.registerFN(opportunisticLinkDump, 'hauler:opportunisticLinkDump');
 
 function retrieveResources(creep) {
   //console.log(creep.name + ' getting resources from ' + creep.memory.haulingResources)
@@ -268,7 +268,7 @@ function retrieveResources(creep) {
     creep.memory.haulingResources = undefined;
   }
 }
-retrieveResources = profiler.registerFN(retrieveResources, 'retrieveResources');
+retrieveResources = profiler.registerFN(retrieveResources, 'hauler:retrieveResources');
 
 function retrieveEnergy(creep) {
   let target = Game.flags[creep.memory.intendedSource];
@@ -303,7 +303,7 @@ function retrieveEnergy(creep) {
     }
   }
 }
-retrieveEnergy = profiler.registerFN(retrieveEnergy, 'retrieveEnergy');
+retrieveEnergy = profiler.registerFN(retrieveEnergy, 'hauler:retrieveEnergy');
 
 function storeLoad(creep) {
   let storage = Game.getObjectById(creep.memory.destinationStorage);
@@ -328,6 +328,6 @@ function storeLoad(creep) {
     task = "Stor";
   }
 }
-storeLoad = profiler.registerFN(storeLoad, 'storeLoad');
+storeLoad = profiler.registerFN(storeLoad, 'hauler:storeLoad');
 
 module.exports = roleSmartHauler;

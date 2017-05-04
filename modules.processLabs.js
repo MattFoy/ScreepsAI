@@ -100,10 +100,21 @@ function processLabs(room) {
 
     let lab1 = Game.getObjectById(room.memory.science.inputLabs[0]);
     let lab2 = Game.getObjectById(room.memory.science.inputLabs[1]);
-    
+    let reactionMineral = undefined;
+    if (REACTIONS[room.memory.science.resource1] 
+      && REACTIONS[room.memory.science.resource1][room.memory.science.resource2]) {
+      reactionMineral = REACTIONS[room.memory.science.resource1][room.memory.science.resource2];  
+    }
+    let reactedMinerals = 0;
+    if (Memory.stats.mineralsAvailable[reactionMineral]) {
+      reactedMinerals = Memory.stats.mineralsAvailable[reactionMineral];
+    }
+
     if (lab1.mineralType === room.memory.science.resource1 
         && lab2.mineralType === room.memory.science.resource2
         && lab1.mineralAmount > 5 && lab2.mineralAmount > 5) {
+      if (!Memory.empire.scm.quotas[reactionMineral] 
+        || reactedMinerals < Memory.empire.scm.quotas[reactionMineral]) {
         labs.forEach(function(lab) {
           if (room.memory.science.boosts) {
             if (_.filter(room.memory.science.boosts, (id) => id === lab.id).length > 0) {
@@ -121,6 +132,9 @@ function processLabs(room) {
             }
           }
         });
+      } else {
+        console.log("Not reacting " + reactionMineral + ". Quota reached.");
+      }
     }
   }
 }

@@ -52,6 +52,7 @@ TODO:
   * not mine it and drop it and also not try to go store it somewhere else...
   * can cause issues with fleeing logic though
 
+* cache room structures in memory for less .find() calls
 
 */
 

@@ -8,7 +8,7 @@ let roleBuilder = {
   flees: true,
 
   forget: function(creep) {
-    creep.memory.buildOrRepairId = null;
+    delete creep.memory.buildOrRepair;
   },
 
   /** @param {Creep} creep **/
@@ -19,6 +19,7 @@ let roleBuilder = {
       creep.memory.replaceBefore = creep.body.length * 3;
     }
 
+    // builders have no business holding minerals
     if (_.sum(creep.carry) > creep.carry.energy) {
       for (let resourceType in creep.carry) {
         if (resourceType !== RESOURCE_ENERGY) {
@@ -71,7 +72,7 @@ let roleBuilder = {
               }
               if (target.hits >= target.hitsMax 
                 || target.hits >= creep.memory.buildOrRepair.amountTotal) {
-                creep.memory.buildOrRepair = null;
+                removeBuildJob(creep);
               }
             }
 
@@ -86,7 +87,7 @@ let roleBuilder = {
             // }
           } 
         } else {
-          delete creep.memory.buildOrRepair;
+          removeBuildJob(creep);
           task += '-X';
         }
       } else {
@@ -148,9 +149,6 @@ let roleBuilder = {
 
     let quota = Math.ceil(((repairNeeded + buildNeeded) * sprawlFactor * queueFactor) / 1000);
 
-    // console.log(room.name + ', sprawlFactor: ' + sprawlFactor 
-    //   + ', queueFactor: ' + queueFactor 
-    //   + ', builder quota: ' + quota);
     return Math.min(max, Math.max(min, quota));
   },
 
@@ -158,6 +156,25 @@ let roleBuilder = {
     return 50 + ((rolesInRoom['builder'] && rolesInRoom['builder'].length > 2) ? 10 : 0);  
   }
 };
+
+
+function removeBuildJob(creep) {
+  // delete the assignment record
+  if (Memory.empire.buildQueueAssignments[creep.memory.buildOrRepair.id]) {
+    delete Memory.empire.buildQueueAssignments[creep.memory.buildOrRepair.id];
+  }
+
+  // delete the job from the queue
+  let buildQueueIdx = _.findIndex(Memory.empire.buildQueues[creep.memory.origin], 
+    (q) => q.id === creep.memory.buildOrRepair.id);
+  if (buildQueueIdx > -1) {
+    Memory.empire.buildQueues[creep.memory.origin].splice(buildQueueIdx, 1);
+  }
+
+  // finally clear the job from the creep's memory
+  delete creep.memory.buildOrRepair;
+}
+removeBuildJob = profiler.registerFN(removeBuildJob, 'builder:removeBuildJob');
 
 
 function getBuilderJob(creep) {
@@ -196,12 +213,6 @@ function getBuilderJob(creep) {
               && !Memory.empire.buildQueues[creep.memory.origin][j].assigned
               && distanceToClosestRoad >= 10);
 
-            // console.log('Creep: ' + creep.name + ', pos: ' + JSON.stringify(creep.pos));
-            // console.log('Start idx: ' + i); 
-            // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][i].pos));
-            // console.log('Final idx: ' + closestRoadIdx);
-            // console.log('Pos: ' + JSON.stringify(Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].pos));
-
             creep.memory.buildOrRepair = Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx];
             Memory.empire.buildQueueAssignments[Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].id] = creep.name;
             Memory.empire.buildQueues[creep.memory.origin][closestRoadIdx].assigned = true;
@@ -226,6 +237,6 @@ function getBuilderJob(creep) {
       }
     }
 }
-getBuilderJob = profiler.registerFN(getBuilderJob, 'getBuilderJob');
+getBuilderJob = profiler.registerFN(getBuilderJob, 'builder:getBuilderJob');
 
 module.exports = roleBuilder;

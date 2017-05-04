@@ -50,9 +50,9 @@ class Traveler {
           ((fMod >= 4) && (fMod <= 6)) &&
           ((sMod >= 4) && (sMod <= 6));
         if (isSK && !options.allowSK) {
-          return 10;
+          return 15;
         } else {
-          return 1.5;
+          return 3.5;
         }        
         if (!options.allowHostile && this.memory.hostileRooms[roomName] &&
           roomName !== destination && roomName !== origin) {

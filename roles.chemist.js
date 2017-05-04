@@ -49,9 +49,22 @@ let roleChemist = {
   },
 
   getQuota: function(room) {
+    let nuker;
+    let nukers = room.find(FIND_STRUCTURES, { 
+      filter: function(structure) {
+        return (structure.structureType === STRUCTURE_NUKER);
+      }
+    });
+    if (nukers.length > 0) {
+      nuker = nukers[0];
+    }
+
     return ((room.controller && room.controller.my && room.controller.level >= 7 && room.memory.science 
       && ((room.memory.science.inputLabs && room.memory.science.inputLabs.length > 0 && room.memory.science.resource1 && room.memory.science.resource2)
-        || (room.memory.science.boosts)))
+        || (room.memory.science.boosts)
+        || (nuker && 
+          ((!nuker.ghodium || nuker.ghodium < nuker.ghodiumCapacity)
+            || !nuker.energy || nuker.energy < nuker.energyCapacity))))
       ? 1 
       : 0);
   },
@@ -279,8 +292,45 @@ function getChemistTask(creep) {
   }
 
   // 10. Load up the Nuker
+  let nuker = creep.pos.findClosestByRange(FIND_STRUCTURES, { 
+    filter: function(structure) {
+      return (structure.structureType === STRUCTURE_NUKER);
+    }
+  });
+  if (nuker) {
+    if (!nuker.ghodium || nuker.ghodium < nuker.ghodiumCapacity) {
+      let mineralsAvailable = 0;
+      if (creep.room.storage && creep.room.storage.store[RESOURCE_GHODIUM]) {
+        mineralsAvailable += creep.room.storage.store[RESOURCE_GHODIUM];
+      }
+      if (creep.room.terminal && creep.room.terminal.store[RESOURCE_GHODIUM]) {
+        mineralsAvailable += creep.room.terminal.store[RESOURCE_GHODIUM];
+      }
+      let mineralsRequired = Math.min(creep.carryCapacity, nuker.ghodiumCapacity - nuker.ghodium);
+      if (mineralsAvailable >= mineralsRequired) {
+        creep.memory.chemistry.targetLabId = nuker.id;
+        creep.memory.chemistry.task = 'load';
+        creep.memory.chemistry.mineralType = RESOURCE_GHODIUM;
+        creep.memory.chemistry.amount = mineralsRequired;
+        return;
+      } else {
+        creep.room.requestResource(RESOURCE_GHODIUM, nuker.ghodiumCapacity - nuker.ghodium, false);
+      }
+      console.log('load nuker')
+    }
 
-
+    if (!nuker.energy || nuker.energy < nuker.energyCapacity) {
+      if (creep.room.storage 
+        && creep.room.storage.store[RESOURCE_ENERGY] > 200000) {
+        creep.memory.chemistry.targetLabId = nuker.id;
+        creep.memory.chemistry.task = 'load';
+        creep.memory.chemistry.mineralType = RESOURCE_ENERGY;
+        creep.memory.chemistry.amount = Math.min(creep.carryCapacity, nuker.energyCapacity - nuker.energy);
+        return;
+      }
+      console.log('load nuker')
+    }
+  }
 
   // else...
   if (!creep.memory.chemistry) { 

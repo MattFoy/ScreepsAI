@@ -84,7 +84,8 @@ let roleBellhop = {
       let terminalNeedsEnergyStocking = false;
       let terminalNeedsResourceStocking = false;
       // TODO: expand to also look at the trading plan and move in the resources for sale / take out the resources purchased
-      if (creep.room.storage && creep.room.terminal && creep.room.memory.tradingPlan) {
+      if (creep.room.storage && creep.room.terminal 
+        && creep.room.memory.tradingPlan && creep.room.memory.tradingPlan.resourceQuantities) {
         if (creep.room.terminal.store[RESOURCE_ENERGY] + 2000 < creep.room.memory.tradingPlan.resourceQuantities[RESOURCE_ENERGY]
           && creep.room.storage.store[RESOURCE_ENERGY] > 50000) {
           terminalNeedsEnergyStocking = true;

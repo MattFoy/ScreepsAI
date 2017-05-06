@@ -17,6 +17,7 @@ function processLabs(room) {
     } else {
       if (labs.length !== room.memory.science.labCount) {
         room.memory.science = {};
+        room.memory.science.inputLabs = [];
         room.memory.science.labCount = labs.length;
       }
     }

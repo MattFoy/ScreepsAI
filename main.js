@@ -210,11 +210,11 @@ profiler.wrap(function() {
   if (Game.time % 700 === 333) { Memory.empire.helpRequired++; }
   if (Memory.empire.helpRequired > 0) {
     Memory.empire.helpRequired -= 
-      Game.spawnHelpFor('W85S37', 1, 'builder');
+      Game.spawnHelpFor('W89S37', 1, 'builder');
   }
 
   if (Game.time % 600 === 0) { 
-    //Game.pilferRoom('W83S36', 4);
+    Game.pilferRoom('W83S36', 6);
     //Game.pilferRoom('W82S38', 7);
   }
 
